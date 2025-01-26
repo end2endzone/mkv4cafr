@@ -5,6 +5,7 @@ import getpass
 import subprocess
 import json
 
+# Constants
 INVALID_TRACK_ID = -1
 INVALID_TRACK_INDEX = -1
 
@@ -46,6 +47,7 @@ def get_mkvpropedit_hints():
 def find_file_in_path(file_name):
     path_list = os.environ['PATH'].split(os.pathsep)
     return find_file_in_hints(file_name, path_list)
+
 
 def find_file_in_hints(file_name, hints):
     for path_entry in hints:
