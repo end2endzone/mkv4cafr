@@ -39,6 +39,16 @@ def update_properties_as_per_preferences(json_obj: dict):
             except Exception as e: pass
     except Exception as e: pass
     
+    # Remove name from video tracks
+    try:
+        video_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'video')
+        for track_index in video_tracks_indice:
+            # Update the track
+            try:
+                json_copy['tracks'][track_index]['properties']['track_name'] = ""
+            except Exception as e: pass
+    except Exception as e: pass
+
     # Rename audio tracks
     try:
         audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'audio')
