@@ -169,3 +169,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Other
+/videos/audio_*
+/videos/*.mp4
+/videos/*.mkv
+/videos/timecodes detailed.srt
