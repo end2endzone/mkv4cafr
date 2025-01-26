@@ -187,7 +187,7 @@ def generate_audio_tracks():
         commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1(side):sample_rate=44100 -strict -2 -vn -c:a dca -b:a 1510k  medias/audio_6ch_1510kbps.dts")
         commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a ac3 -b:a 640k   medias/audio_6ch_640kbps.ac3")
         commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k medias/audio_6ch_1152kbps.eac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=7.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k medias/audio_8ch_1152kbps.eac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i sine=frequency=100:duration=60:sample_rate=48000 -ac 8         -vn -c:a flac            medias/audio_8ch_1152kbps.flac")
 
         for command in commands:
             command = str(command)

@@ -21,7 +21,7 @@
     "--default-track-flag",
     "0:no",
     "(",
-    "medias/audio_8ch_1152kbps.eac3",
+    "medias/audio_6ch_1152kbps.eac3",
     ")",
 
     "--language",
@@ -30,6 +30,22 @@
     "0:this is the main original audio track",
     "(",
     "medias/audio_2ch_192kbps.aac",
+    ")",
+
+    "--language",
+    "0:en",
+    "--track-name",
+    "0:this is a high definition DTS audio track",
+    "(",
+    "medias/audio_6ch_1510kbps.dts",
+    ")",
+
+    "--language",
+    "0:en",
+    "--track-name",
+    "0:this is an uncompressed 7.1 audio channel audio track in original language (VO)",
+    "(",
+    "medias/audio_8ch_1152kbps.flac",
     ")",
 
     "--language",
