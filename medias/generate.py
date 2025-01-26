@@ -5,8 +5,15 @@ import getpass
 import subprocess
 import json
 
+# Add parent directory as a search path for module. This might be a bad practice though.
+# https://stackoverflow.com/questions/53863239/import-module-from-parent-directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import mkvutils
+
 
 # Constants
+# N/A
+
 
 def format_timecode(time_abs_seconds):
     remaining = time_abs_seconds
@@ -24,50 +31,6 @@ def format_timecode(time_abs_seconds):
 
     time_str = "{:02d}:{:02d}:{:02d},{:03d}".format(hours, minutes, seconds, milliseconds)
     return time_str
-
-
-def get_executable_file_extension_name():
-    if os.name == 'nt' or os.name == 'win32':
-        return ".exe"
-    else:
-        return ""
-
-
-def find_file_in_path(file_name):
-    path_list = os.environ['PATH'].split(os.pathsep)
-    return find_file_in_hints(file_name, path_list)
-
-
-def find_file_in_hints(file_name, hints):
-    for path_entry in hints:
-        full_path = os.path.join(path_entry,file_name)
-        if os.path.isfile(full_path):
-            return full_path
-    return None
-
-
-def find_ffmpeg():
-    exec_path = find_file_in_path("ffmpeg" + get_executable_file_extension_name())
-    return exec_path
-
-
-def find_MKVToolNix_install_dir():
-    exec_path = find_file_in_path("mkvmerge" + get_executable_file_extension_name())
-    if not exec_path is None:
-        dir_path = os.path.dirname(exec_path)
-        return dir_path
-        
-    # Not in PATH
-    # Add default installation location in PATH
-    os.environ['PATH'] = "C:\\Program Files\\MKVToolNix" + os.pathsep + os.environ['PATH']
-
-    # and search again
-    exec_path = find_file_in_path("mkvmerge" + get_executable_file_extension_name())
-    if not exec_path is None:
-        dir_path = os.path.dirname(exec_path)
-        return dir_path
-        
-    return None
 
 
 def generate_subtitle_timecodes_detailed(args):
@@ -275,17 +238,17 @@ def main():
         print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")    
 
     # Find ffmpeg on system
-    ffmpeg_exec_path = find_ffmpeg()
+    ffmpeg_exec_path = mkvutils.find_ffmpeg_exec_path()
     if ffmpeg_exec_path is None or not os.path.isfile(ffmpeg_exec_path):
         print("ffmpeg not found in PATH\n")
         sys.exit(1)
 
     # Find mkvmerge on system
-    mkvtoolnix_install_path = find_MKVToolNix_install_dir()
+    mkvtoolnix_install_path = mkvutils.find_MKVToolNix_install_dir()
     if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
         print("MKVToolNix not found in PATH\n")
         sys.exit(1)
-    exec_ext = get_executable_file_extension_name()
+    exec_ext = mkvutils.get_executable_file_extension_name()
     mkvmerge_exec_path    = os.path.join(mkvtoolnix_install_path, "mkvmerge" + exec_ext)
     mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + exec_ext)
 
