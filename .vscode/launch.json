@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: sample edit-in-place",
+            "name": "Python Debugger: mkv4cafr --input 'medias/test01.mkv' --edit-in-place",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
+            "program": "${workspaceFolder}/mkv4cafr.py",
             "console": "integratedTerminal",
-            "cwd": "${fileDirname}",
-            "args": "--input \"E:\\Temp\\movie.mkv\" --edit-in-place"
+            "cwd": "${workspaceFolder}",
+            "args": "--input \"medias/test01.mkv\" --edit-in-place"
         },
         {
             "name": "Python Debugger: Current File with Arguments",

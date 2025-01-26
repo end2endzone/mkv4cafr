@@ -175,3 +175,4 @@ cython_debug/
 /medias/*.mp4
 /medias/*.mkv
 /medias/timecodes detailed.srt
+/medias/test01.mkv.*

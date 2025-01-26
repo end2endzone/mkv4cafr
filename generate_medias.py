@@ -5,7 +5,7 @@ import getpass
 import subprocess
 import json
 
-import mkvutils
+import mediautils
 
 
 # Constants
@@ -234,20 +234,27 @@ def main():
     except Exception as e:
         print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")    
 
-    # Find ffmpeg on system
-    ffmpeg_exec_path = mkvutils.find_ffmpeg_exec_path()
+    # Find ffmpeg in path
+    ffmpeg_exec_path = mediautils.find_ffmpeg_exec_path_in_path()
     if ffmpeg_exec_path is None or not os.path.isfile(ffmpeg_exec_path):
         print("ffmpeg not found in PATH\n")
         sys.exit(1)
 
     # Find mkvmerge on system
-    mkvtoolnix_install_path = mkvutils.find_MKVToolNix_install_dir()
+    mkvtoolnix_install_path = mediautils.find_mkvtoolnix_dir_in_path()
     if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
-        print("MKVToolNix not found in PATH\n")
-        sys.exit(1)
-    exec_ext = mkvutils.get_executable_file_extension_name()
-    mkvmerge_exec_path    = os.path.join(mkvtoolnix_install_path, "mkvmerge" + exec_ext)
-    mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + exec_ext)
+        print("MKVToolNix not found in PATH.\n")
+
+        print("Searching known installation directories...")
+        mkvtoolnix_install_path = mediautils.find_mkvtoolnix_dir_on_system()
+        if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
+            print("MKVToolNix not found on system.\n")
+            sys.exit(1)
+
+        # Found, but not in PATH
+        os.environ['PATH'] = mkvtoolnix_install_path + os.pathsep + os.environ['PATH']
+    mkvmerge_exec_path    = os.path.join(mkvtoolnix_install_path, "mkvmerge"    + mediautils.get_executable_file_extension_name())
+    mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + mediautils.get_executable_file_extension_name())
 
     print("Argument values:")
     print("  framerate: " + str(args.framerate))
