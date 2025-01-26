@@ -51,6 +51,25 @@ def find_ffmpeg():
     return exec_path
 
 
+def find_MKVToolNix_install_dir():
+    exec_path = find_file_in_path("mkvmerge" + get_executable_file_extension_name())
+    if not exec_path is None:
+        dir_path = os.path.dirname(exec_path)
+        return dir_path
+        
+    # Not in PATH
+    # Add default installation location in PATH
+    os.environ['PATH'] = "C:\\Program Files\\MKVToolNix" + os.pathsep + os.environ['PATH']
+
+    # and search again
+    exec_path = find_file_in_path("mkvmerge" + get_executable_file_extension_name())
+    if not exec_path is None:
+        dir_path = os.path.dirname(exec_path)
+        return dir_path
+        
+    return None
+
+
 def generate_subtitle_timecodes_detailed(args):
     # Compute details
     interval_seconds = args.video_length / args.subtitles_count
@@ -112,7 +131,9 @@ def generate_life_h264():
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
-    print("done.")    
+    print("done.")
+    print("")
+    print("")
 
 
 def generate_life_h265():
@@ -151,7 +172,9 @@ def generate_life_h265():
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
-    print("done.")    
+    print("done.")
+    print("")
+    print("")
 
 
 def generate_testsrc2():
@@ -185,7 +208,9 @@ def generate_testsrc2():
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
-    print("done.")    
+    print("done.")
+    print("")
+    print("")
 
 
 def get_anullsrc_filter(channel_layout: str, sample_rate: int):
@@ -210,11 +235,29 @@ def generate_audio_tracks():
             command_args = str(command).split(' ')
             subprocess.run(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
-        print("Failed to execute ffmpeg command: '", command_args, "'. Error code: ", procexc.returncode, procexc.output)
+        print("Failed to execute ffmpeg command: '", command, "'. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
-    print("done.")    
+    print("done.")
+    print("")
+    print("")
 
 
+def generate_mkv_files():
+    try:
+        commands = list()
+        commands.append("mkvmerge @test01.json")
+        for command in commands:
+            command = str(command)
+            while(command.find("  ") != -1):
+                command = command.replace("  ", " ")
+            command_args = str(command).split(' ')
+            subprocess.run(command_args)
+    except subprocess.CalledProcessError as procexc:                                                                                                   
+        print("Failed to execute MKVToolNix command: '", command, "'. Error code: ", procexc.returncode, procexc.output)
+        sys.exit(2)
+    print("done.")
+    print("")
+    print("")
 
 
 def main():
@@ -237,11 +280,21 @@ def main():
         print("ffmpeg not found in PATH\n")
         sys.exit(1)
 
+    # Find mkvmerge on system
+    mkvtoolnix_install_path = find_MKVToolNix_install_dir()
+    if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
+        print("MKVToolNix not found in PATH\n")
+        sys.exit(1)
+    exec_ext = get_executable_file_extension_name()
+    mkvmerge_exec_path    = os.path.join(mkvtoolnix_install_path, "mkvmerge" + exec_ext)
+    mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + exec_ext)
+
     print("Argument values:")
-    print()
-    print("framerate: " + str(args.framerate))
-    print("subtitles-count: " + str(args.subtitles_count))
-    print("video-length: " + str(args.video_length))
+    print("  framerate: " + str(args.framerate))
+    print("  subtitles-count: " + str(args.subtitles_count))
+    print("  video-length: " + str(args.video_length))
+    print("")
+    print("")
 
     # Generate subtitles
     generate_subtitle_timecodes_detailed(args)
@@ -251,6 +304,9 @@ def main():
     generate_life_h265()
     generate_testsrc2()
     generate_audio_tracks()
+
+    # Generate mkv files
+    generate_mkv_files()
 
 
 if __name__ == "__main__":
