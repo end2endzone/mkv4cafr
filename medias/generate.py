@@ -127,9 +127,9 @@ def generate_life_h264():
         command_args.append("-crf")
         command_args.append("0")
         command_args.append("life-h264.mp4")
-        subprocess.run(command_args)
+        subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
-        print("Failed to execute ffmpeg. Error code: ", procexc.returncode, procexc.output)
+        print("Failed to execute ffmpeg '", " ".join(command_args), "'. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
     print("done.")
     print("")
@@ -168,9 +168,9 @@ def generate_life_h265():
         command_args.append("-crf")
         command_args.append("0")
         command_args.append("life-h265.mp4")
-        subprocess.run(command_args)
+        subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
-        print("Failed to execute ffmpeg. Error code: ", procexc.returncode, procexc.output)
+        print("Failed to execute ffmpeg '", " ".join(command_args), "'. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
     print("done.")
     print("")
@@ -192,7 +192,7 @@ def generate_testsrc2():
         command_args.append("ffmpeg")
         command_args.append("-y")
         command_args.append("-hide_banner")
-        command_args.append("filter_complex")
+        command_args.append("-filter_complex")
         command_args.append(filter)
         command_args.append("-map")
         command_args.append("[v]")
@@ -204,9 +204,9 @@ def generate_testsrc2():
         command_args.append("-crf")
         command_args.append("30")
         command_args.append("testsrc2.mp4")
-        subprocess.run(command_args)
+        subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
-        print("Failed to execute ffmpeg. Error code: ", procexc.returncode, procexc.output)
+        print("Failed to execute ffmpeg '", " ".join(command_args), "'. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
     print("done.")
     print("")
@@ -233,7 +233,7 @@ def generate_audio_tracks():
             while(command.find("  ") != -1):
                 command = command.replace("  ", " ")
             command_args = str(command).split(' ')
-            subprocess.run(command_args)
+            subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg command: '", command, "'. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
@@ -251,7 +251,7 @@ def generate_mkv_files():
             while(command.find("  ") != -1):
                 command = command.replace("  ", " ")
             command_args = str(command).split(' ')
-            subprocess.run(command_args)
+            subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute MKVToolNix command: '", command, "'. Error code: ", procexc.returncode, procexc.output)
         sys.exit(2)
