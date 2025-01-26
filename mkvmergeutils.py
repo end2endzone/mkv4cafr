@@ -7,13 +7,19 @@ INVALID_TRACK_INDEX = -1
 
 
 def get_tracks_indice_by_type(input_tracks: list, type: str):
+    types = list()
+    types.append(type)
+    return get_tracks_indice_by_type(input_tracks, types)
+
+
+def get_tracks_indice_by_type(input_tracks: list, types: list):
     matching_track_indice = list()
     for i in range(len(input_tracks)):
         track = input_tracks[i]
         track_index = i
         #properties = track['properties']
         track_type = track['type']
-        if track_type == type:
+        if (track_type in types):
             matching_track_indice.append(track_index)
     return matching_track_indice
 

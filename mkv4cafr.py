@@ -49,6 +49,29 @@ def update_properties_as_per_preferences(json_obj: dict):
             except Exception as e: pass
     except Exception as e: pass
 
+    # Force language of audio/subtitles if a language hint is found in the track's name
+    try:
+        tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, ['audio', 'subtitles'])
+        for track_index in tracks_indice:
+            # Update the track
+            try:
+                track = json_copy['tracks'][track_index]
+                if not "properties" in track:
+                    continue
+                flags = mkvmergeutils.get_track_name_flags(track)
+                if flags is None:
+                    continue
+
+                if (flags.find("VFQ") != 1):
+                    json_copy['tracks'][track_index]['properties']['language'] = "fre"
+                    json_copy['tracks'][track_index]['properties']['language_ietf'] = "fr-CA"
+                elif (flags.find("VFF") != 1):
+                    json_copy['tracks'][track_index]['properties']['language'] = "fre"
+                    json_copy['tracks'][track_index]['properties']['language_ietf'] = "fr-FR"
+
+            except Exception as e: pass
+    except Exception as e: pass
+    
     # Rename audio tracks
     try:
         audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'audio')
@@ -79,31 +102,34 @@ def update_properties_as_per_preferences(json_obj: dict):
         json_copy["tracks"][track_index]["properties"]["default_track"] = True;
 
     # Set forced flag to subtitles that contains less than 150 entries or the string "force" in their name
-    for i in range(len(tracks)):
-        track = tracks[i]
-        if not "properties" in track:
-            continue
-        properties = track['properties']
+    try:
+        subtitles_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'subtitles')
+        for track_index in subtitles_tracks_indice:
+            track = tracks[track_index]
+            if not "properties" in track:
+                continue
+            properties = track['properties']
 
-        # Set forced flag for subtitles that have less than 150 entries
-        # (validate with property 'tag_number_of_frames' first)
-        tag_number_of_frames_str = properties['tag_number_of_frames'] if 'tag_number_of_frames' in track else 0
-        tag_number_of_frames = int(tag_number_of_frames_str)
-        if (tag_number_of_frames > 0 and tag_number_of_frames <= 150):
-            json_copy["tracks"][i]["properties"]["forced_track"] = True
-        # (then validate with property 'num_index_entries')
-        num_index_entries = properties['num_index_entries'] if 'num_index_entries' in track else 0
-        if (num_index_entries > 0 and num_index_entries <= 150):
-            json_copy["tracks"][i]["properties"]["forced_track"] = True
+            # Set forced flag for subtitles that have less than 150 entries
+            # (validate with property 'tag_number_of_frames' first)
+            tag_number_of_frames_str = properties['tag_number_of_frames'] if 'tag_number_of_frames' in properties else 0
+            tag_number_of_frames = int(tag_number_of_frames_str)
+            if (tag_number_of_frames > 0 and tag_number_of_frames <= 150):
+                json_copy["tracks"][track_index]["properties"]["forced_track"] = True
+            # (then validate with property 'num_index_entries')
+            num_index_entries = properties['num_index_entries'] if 'num_index_entries' in properties else 0
+            if (num_index_entries > 0 and num_index_entries <= 150):
+                json_copy["tracks"][track_index]["properties"]["forced_track"] = True
 
-        # Check if word "forced" is found, it is propably a forced subtible track
-        track_name = properties['track_name'] if 'track_name' in track else ""
-        track_name = track_name.upper()
-        if ( track_name.find("FORCE") != -1 ):
-          json_copy["tracks"][i]["properties"]["forced_track"] = True
+            # Check if word "forced" is found, it is propably a forced subtible track
+            track_name = properties['track_name'] if 'track_name' in properties else ""
+            track_name = track_name.upper()
+            if ( track_name.find("FORCE") != -1 ):
+                json_copy["tracks"][track_index]["properties"]["forced_track"] = True
+    except Exception as e: pass
         
     # Update forced subtitles track as per preferences
-    best_forced_track_id = mkvmergeutils.get_best_forced_track_id_for_type(tracks, 'subtitles')
+    best_forced_subtitle_track_id = mkvmergeutils.get_best_forced_track_id_for_type(tracks, 'subtitles')
     # Unset all defaults subtitles tracks
     try:
         subtitles_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'subtitles')
@@ -112,8 +138,8 @@ def update_properties_as_per_preferences(json_obj: dict):
                 json_copy['tracks'][track_index]['properties']['default_track'] = False
             except Exception as e: pass
     except Exception as e: pass
-    if ( best_forced_track_id != mkvmergeutils.INVALID_TRACK_ID ):
-        track_index = mkvmergeutils.get_track_index_from_id(tracks, best_forced_track_id)
+    if ( best_forced_subtitle_track_id != mkvmergeutils.INVALID_TRACK_ID ):
+        track_index = mkvmergeutils.get_track_index_from_id(tracks, best_forced_subtitle_track_id)
         json_copy["tracks"][track_index]["properties"]["default_track"] = True
 
     return json_copy
