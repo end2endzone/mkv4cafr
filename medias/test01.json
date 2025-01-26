@@ -5,6 +5,7 @@
     "lower",
     "--output",
     "medias/test01.mkv",
+
     "--language",
     "0:und",
     "--track-name",
@@ -12,22 +13,35 @@
     "(",
     "medias/life-h264.mp4",
     ")",
+
     "--language",
     "0:fr",
     "--track-name",
-    "0:this is a less important ac3 track",
+    "0:this is a less important eac3 french track",
+    "--default-track-flag",
+    "0:no",
+    "(",
+    "medias/audio_8ch_1152kbps.eac3",
+    ")",
+
+    "--language",
+    "0:en",
+    "--track-name",
+    "0:this is the main original audio track",
+    "(",
+    "medias/audio_2ch_192kbps.aac",
+    ")",
+
+    "--language",
+    "0:fr-CA",
+    "--track-name",
+    "0:this is a ac3 canadian french track",
     "--default-track-flag",
     "0:no",
     "(",
     "medias/audio_6ch_640kbps.ac3",
     ")",
-    "--language",
-    "0:en",
-    "--track-name",
-    "0:this is the main audio track",
-    "(",
-    "medias/audio_2ch_192kbps.aac",
-    ")",
+
     "--language",
     "0:fr-CA",
     "--track-name",
@@ -35,6 +49,7 @@
     "(",
     "medias/timecodes for 1s every 5s.srt",
     ")",
+
     "--language",
     "0:en",
     "--track-name",
@@ -42,8 +57,9 @@
     "(",
     "medias/timecodes detailed.srt",
     ")",
+
     "--title",
     "Game of Life (1970)",
     "--track-order",
-    "0:0,1:0,2:0,3:0,4:0"
+    "0:0,1:0,2:0,3:0,4:0,5:0"
   ]
