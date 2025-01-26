@@ -171,7 +171,7 @@ cython_debug/
 .pypirc
 
 # Other
-/videos/audio_*
-/videos/*.mp4
-/videos/*.mkv
-/videos/timecodes detailed.srt
+/medias/audio_*
+/medias/*.mp4
+/medias/*.mkv
+/medias/timecodes detailed.srt
