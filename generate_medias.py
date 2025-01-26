@@ -5,9 +5,6 @@ import getpass
 import subprocess
 import json
 
-# Add parent directory as a search path for module. This might be a bad practice though.
-# https://stackoverflow.com/questions/53863239/import-module-from-parent-directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import mkvutils
 
 
@@ -48,7 +45,7 @@ def generate_subtitle_timecodes_detailed(args):
     #   00:00:25,000 --> 00:00:25,999
     #   25
     #   
-    with open("timecodes detailed.srt", "w") as text_file:
+    with open("medias/timecodes detailed.srt", "w") as text_file:
         for i in range(args.subtitles_count):
             sub_start_time = i * interval_seconds
             sub_stop_time = (i+1) * interval_seconds - 0.001
@@ -89,7 +86,7 @@ def generate_life_h264():
         command_args.append("slow")
         command_args.append("-crf")
         command_args.append("0")
-        command_args.append("life-h264.mp4")
+        command_args.append("medias/life-h264.mp4")
         subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg '", " ".join(command_args), "'. Error code: ", procexc.returncode, procexc.output)
@@ -130,7 +127,7 @@ def generate_life_h265():
         command_args.append("slow")
         command_args.append("-crf")
         command_args.append("0")
-        command_args.append("life-h265.mp4")
+        command_args.append("medias/life-h265.mp4")
         subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg '", " ".join(command_args), "'. Error code: ", procexc.returncode, procexc.output)
@@ -166,7 +163,7 @@ def generate_testsrc2():
         command_args.append("slow")
         command_args.append("-crf")
         command_args.append("30")
-        command_args.append("testsrc2.mp4")
+        command_args.append("medias/testsrc2.mp4")
         subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg '", " ".join(command_args), "'. Error code: ", procexc.returncode, procexc.output)
@@ -182,14 +179,14 @@ def get_anullsrc_filter(channel_layout: str, sample_rate: int):
 def generate_audio_tracks():
     try:
         commands = list()
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=44100               -vn -c:a pcm_s16le       audio_silence_44khz.wav")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a mp3 -b:a 128k   audio_2ch_128kbps.mp3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a ac3 -b:a 192k   audio_2ch_192kbps.ac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a aac -b:a 192k   audio_2ch_192kbps.aac")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1(side):sample_rate=44100 -strict -2 -vn -c:a dca -b:a 1510k  audio_6ch_1510kbps.dts")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a ac3 -b:a 640k   audio_6ch_640kbps.ac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k audio_6ch_1152kbps.eac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=7.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k audio_8ch_1152kbps.eac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=44100               -vn -c:a pcm_s16le       medias/audio_silence_44khz.wav")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a mp3 -b:a 128k   medias/audio_2ch_128kbps.mp3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a ac3 -b:a 192k   medias/audio_2ch_192kbps.ac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a aac -b:a 192k   medias/audio_2ch_192kbps.aac")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1(side):sample_rate=44100 -strict -2 -vn -c:a dca -b:a 1510k  medias/audio_6ch_1510kbps.dts")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a ac3 -b:a 640k   medias/audio_6ch_640kbps.ac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k medias/audio_6ch_1152kbps.eac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=7.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k medias/audio_8ch_1152kbps.eac3")
 
         for command in commands:
             command = str(command)
@@ -208,7 +205,7 @@ def generate_audio_tracks():
 def generate_mkv_files():
     try:
         commands = list()
-        commands.append("mkvmerge @test01.json")
+        commands.append("mkvmerge @medias/test01.json")
         for command in commands:
             command = str(command)
             while(command.find("  ") != -1):
