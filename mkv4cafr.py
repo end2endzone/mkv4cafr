@@ -19,35 +19,36 @@ def directory(raw_path):
         raise argparse.ArgumentTypeError('"{}" is not an existing directory'.format(raw_path))
     return os.path.abspath(raw_path)
 
+def update_video_tracks_set_default_track_flag(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
 
-def update_properties_as_per_preferences(json_obj: dict):
-    json_copy = json_obj.copy()
-    tracks = json_copy['tracks'] if 'tracks' in json_copy else None
-
-    # Clear the title
-    try:
-        json_copy['container']['properties']['title'] = ""
-    except Exception as e: pass
-    
     # Set video tracks as default tracks
     try:
         video_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'video')
         for track_index in video_tracks_indice:
             # Update the track
             try:
-                json_copy['tracks'][track_index]['properties']['default_track'] = True
+                json_obj['tracks'][track_index]['properties']['default_track'] = True
             except Exception as e: pass
     except Exception as e: pass
-    
+
+
+def update_video_tracks_remove_track_name(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
+
     # Remove name from video tracks
     try:
         video_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'video')
         for track_index in video_tracks_indice:
             # Update the track
             try:
-                json_copy['tracks'][track_index]['properties']['track_name'] = ""
+                json_obj['tracks'][track_index]['properties']['track_name'] = ""
             except Exception as e: pass
     except Exception as e: pass
+
+
+def update_set_language_from_track_name_hints(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
 
     # Force language of audio/subtitles if a language hint is found in the track's name
     try:
@@ -71,35 +72,50 @@ def update_properties_as_per_preferences(json_obj: dict):
 
             except Exception as e: pass
     except Exception as e: pass
-    
+
+
+def update_audio_tracks_rename_all_track_names(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
+
     # Rename audio tracks
     try:
         audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'audio')
         for track_index in audio_tracks_indice:
             # Update the track
             try:
-                new_name = mkvmergeutils.get_track_auto_generated_name(json_copy['tracks'][track_index])
-                json_copy['tracks'][track_index]['properties']['track_name'] = new_name
+                new_name = mkvmergeutils.get_track_auto_generated_name(json_obj['tracks'][track_index])
+                json_obj['tracks'][track_index]['properties']['track_name'] = new_name
             except Exception as e: pass
     except Exception as e: pass
+
+
+def update_audio_tracks_default_track(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
 
     # Update default audio track as per preferences
     first_default_audio_track_id = mkvmergeutils.get_first_default_track_id_for_type(tracks, 'audio')
     best_audio_track_id = mkvmergeutils.get_best_track_id_for_type(tracks, 'audio')
+
     # Unset all defaults audio tracks
     try:
         audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'audio')
         for track_index in audio_tracks_indice:
             try:
-                json_copy['tracks'][track_index]['properties']['default_track'] = False
+                json_obj['tracks'][track_index]['properties']['default_track'] = False
             except Exception as e: pass
     except Exception as e: pass
+
+    # Set default_track from "best"
     if ( best_audio_track_id != mkvmergeutils.INVALID_TRACK_ID ):
         track_index = mkvmergeutils.get_track_index_from_id(tracks, best_audio_track_id)
-        json_copy["tracks"][track_index]["properties"]["default_track"] = True
+        json_obj["tracks"][track_index]["properties"]["default_track"] = True
     elif ( first_default_audio_track_id != mkvmergeutils.INVALID_TRACK_ID ):
         track_index = mkvmergeutils.get_track_index_from_id(tracks, first_default_audio_track_id)
-        json_copy["tracks"][track_index]["properties"]["default_track"] = True;
+        json_obj["tracks"][track_index]["properties"]["default_track"] = True
+
+
+def update_subtitle_tracks_set_forced_flag_if_required(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
 
     # Set forced flag to subtitles that contains less than 150 entries or the string "force" in their name
     try:
@@ -115,33 +131,58 @@ def update_properties_as_per_preferences(json_obj: dict):
             tag_number_of_frames_str = properties['tag_number_of_frames'] if 'tag_number_of_frames' in properties else 0
             tag_number_of_frames = int(tag_number_of_frames_str)
             if (tag_number_of_frames > 0 and tag_number_of_frames <= 150):
-                json_copy["tracks"][track_index]["properties"]["forced_track"] = True
+                json_obj["tracks"][track_index]["properties"]["forced_track"] = True
             # (then validate with property 'num_index_entries')
             num_index_entries = properties['num_index_entries'] if 'num_index_entries' in properties else 0
             if (num_index_entries > 0 and num_index_entries <= 150):
-                json_copy["tracks"][track_index]["properties"]["forced_track"] = True
+                json_obj["tracks"][track_index]["properties"]["forced_track"] = True
 
             # Check if word "forced" is found, it is propably a forced subtible track
             track_name = properties['track_name'] if 'track_name' in properties else ""
             track_name = track_name.upper()
             if ( track_name.find("FORCE") != -1 ):
-                json_copy["tracks"][track_index]["properties"]["forced_track"] = True
+                json_obj["tracks"][track_index]["properties"]["forced_track"] = True
     except Exception as e: pass
-        
+
+
+def update_subtitle_tracks_default_track_from_forced_flag(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
+
     # Update forced subtitles track as per preferences
     best_forced_subtitle_track_id = mkvmergeutils.get_best_forced_track_id_for_type(tracks, 'subtitles')
+
     # Unset all defaults subtitles tracks
     try:
         subtitles_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'subtitles')
         for track_index in subtitles_tracks_indice:
             try:
-                json_copy['tracks'][track_index]['properties']['default_track'] = False
+                json_obj['tracks'][track_index]['properties']['default_track'] = False
             except Exception as e: pass
     except Exception as e: pass
+
+    # Set default_track from "best"
     if ( best_forced_subtitle_track_id != mkvmergeutils.INVALID_TRACK_ID ):
         track_index = mkvmergeutils.get_track_index_from_id(tracks, best_forced_subtitle_track_id)
-        json_copy["tracks"][track_index]["properties"]["default_track"] = True
+        json_obj["tracks"][track_index]["properties"]["default_track"] = True
 
+
+def update_properties_as_per_preferences(json_obj: dict):
+    json_copy = json_obj.copy()
+    tracks = json_copy['tracks'] if 'tracks' in json_copy else None
+
+    # Clear the title
+    try:
+        json_copy['container']['properties']['title'] = ""
+    except Exception as e: pass
+    
+    update_video_tracks_set_default_track_flag(json_copy)
+    update_video_tracks_remove_track_name(json_copy)
+    update_set_language_from_track_name_hints(json_copy)
+    update_audio_tracks_rename_all_track_names(json_copy)
+    update_audio_tracks_default_track(json_copy)
+    update_subtitle_tracks_set_forced_flag_if_required(json_copy)
+    update_subtitle_tracks_default_track_from_forced_flag(json_copy)
+    
     return json_copy
 
 
