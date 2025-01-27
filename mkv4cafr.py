@@ -4,6 +4,7 @@ import sys
 import getpass
 import subprocess
 import json
+import copy
 
 import findutils
 import mkvtoolnixutils
@@ -11,6 +12,10 @@ import mkvmergeutils
 
 # Constants
 # N/A
+
+def print_header():
+    print("mkv4cafr v1.0")
+    print()
 
 # Parse output directory
 # See https://gist.github.com/harrisont/ecb340616ab6f7cf11f99364fd57ef7e
@@ -167,7 +172,9 @@ def update_subtitle_tracks_default_track_from_forced_flag(json_obj: dict):
 
 
 def update_properties_as_per_preferences(json_obj: dict):
-    json_copy = json_obj.copy()
+    # Make a deep copy of all the json data
+    json_copy = copy.deepcopy(json_obj)
+
     tracks = json_copy['tracks'] if 'tracks' in json_copy else None
 
     # Clear the title
@@ -186,7 +193,126 @@ def update_properties_as_per_preferences(json_obj: dict):
     return json_copy
 
 
+def compute_json_differences(json_left: dict, json_right: dict):
+    json_diff = dict()
+
+    # Compare number of tracks
+    tracks_left = json_left['tracks'] if 'tracks' in json_left else None
+    tracks_right = json_right['tracks'] if 'tracks' in json_right else None
+    if (tracks_left is None or
+        tracks_right is None):
+        return None
+    num_tracks_left = len(tracks_left)
+    num_tracks_right = len(tracks_right)
+    if (num_tracks_left != num_tracks_right):
+        return None
+
+    # Compare title
+    title_left = mkvmergeutils.get_container_properties_title(json_left)
+    title_right = mkvmergeutils.get_container_properties_title(json_right)
+    if (not title_left is None and
+        not title_right is None and
+        title_left != title_right):
+
+        # Title has changed
+        json_diff['container'] = dict()
+        json_diff['container']['properties'] = dict()
+        json_diff['container']['properties']['title'] = title_right
+
+    # Create an empty track list
+    if (not 'tracks' in json_diff):
+        json_diff['tracks'] = list()
+
+    # Compare tracks one by one
+    for i in range(len(tracks_right)):
+        track_left = tracks_left[i]
+        track_right = tracks_right[i]
+
+        # Check for errors
+        if (track_left is None or
+            track_right is None):
+            return None
+        
+        # Check integrity
+        type_left = track_left['type'] if 'type' in track_left else None
+        type_right = track_right['type'] if 'type' in track_right else None
+        if (type_left is None or
+            type_right is None):
+            return None
+        id_left = track_left['id'] if 'id' in track_left else None
+        id_right = track_right['id'] if 'id' in track_right else None
+        if (id_left is None or
+            id_right is None):
+            return None
+
+        # At this point, we are certain that we are dealing with the same track
+        
+        # Always add an empty track to the list
+        json_diff['tracks'].append(dict())
+
+        # Remember the index to be able to match the original tracks by index
+        track_index = len(json_diff['tracks']) - 1
+
+        # If no change in these tracks is found, skip those
+        if (track_left == tracks_right):
+            # Next tracks
+            continue
+
+        properties_left = track_left['properties'] if 'properties' in track_left else None
+        properties_right = track_right['properties'] if 'properties' in track_right else None
+        if (properties_left is None or
+            properties_right is None):
+            return None
+
+        # If no property has changed
+        if (properties_left == properties_right):
+            # Next tracks
+            continue
+
+        # Compare properties one by one
+        property_names = list()
+        property_names.append("codec_id")
+        property_names.append("default_track")
+        property_names.append("display_dimensions")
+        property_names.append("enabled_track")
+        property_names.append("forced_track")
+        property_names.append("language")
+        property_names.append("language_ietf")
+        property_names.append("pixel_dimensions")
+        property_names.append("track_name")
+        property_names.append("uid")
+        for property_name in property_names:
+            # Get value
+            property_value_left = properties_left[property_name] if property_name in properties_left else None
+            property_value_right = properties_right[property_name] if property_name in properties_right else None
+
+            # Check for null
+            if (property_value_left is None or
+                property_value_right is None):
+                continue
+
+            if (property_value_left != property_value_right):
+                # Property has changed
+
+                # Check for existing 'properties' container in the track
+                if (not 'properties' in json_diff['tracks'][track_index]):
+                    json_diff['tracks'][track_index]['properties'] = dict()
+
+                # Set the property value as a diff
+                json_diff['tracks'][track_index]['properties'][property_name] = property_value_right
+                
+        # end for each property_name
+
+        # Check to see if new track was added
+
+    # end for each tracks
+
+    return json_diff
+
+
 def main():
+    print_header()
+
     # Parse command line arguments
     # See https://stackoverflow.com/questions/20063/whats-the-best-way-to-parse-command-line-arguments for example.
     parser = argparse.ArgumentParser(description='mkv4cafr sets properties of mkv files for Canadian French viewers')
@@ -201,14 +327,14 @@ def main():
         print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")    
 
     print("Argument values:")
-    print(args.input)
-    print(args.output)
-    print(args.edit_in_place)
+    print("  input: " + str(args.input.name))
+    print("  output: " + str(args.output))
+    print("  edit-in-place: " + str(args.edit_in_place))
 
     # Search for mkvpropedit on the system
     mkvtoolnix_install_path = mkvtoolnixutils.find_mkvtoolnix_dir_in_path()
     if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
-        print("MKVToolNix not found in PATH.\n")
+        print("MKVToolNix not found in PATH.")
 
         print("Searching known installation directories...")
         mkvtoolnix_install_path = mkvtoolnixutils.find_mkvtoolnix_dir_on_system()
@@ -262,7 +388,17 @@ def main():
             json.dump(json_copy, text_file, indent=2)
     except Exception as e: pass
 
+    # Compute difference between json_obj and json_copy
+    json_diff = compute_json_differences(json_obj, json_copy)
 
+    has_diff = bool(json_diff)
+    if (not has_diff):
+        print("No modification required in input file metadata")
+        return 0
+    
+    print("Input file requires the following changes in metadata:")
+    diff_str = json.dumps(json_diff, indent=2)
+    print(diff_str)
 
 if __name__ == "__main__":
     main()

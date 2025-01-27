@@ -288,3 +288,15 @@ def get_track_index_from_id(tracks: list, target_id: int):
     return INVALID_TRACK_INDEX
 
 
+def get_container_properties_title(json_obj: dict):
+    if not "container" in json_obj:
+        return None
+    container = json_obj['container']
+    
+    if not "properties" in container:
+        return None
+    properties = container['properties']
+
+    title = properties['title'] if "title" in properties else None
+    return title
+    
