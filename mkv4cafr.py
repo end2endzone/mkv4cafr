@@ -270,17 +270,7 @@ def compute_json_differences(json_left: dict, json_right: dict):
             continue
 
         # Compare properties one by one
-        property_names = list()
-        property_names.append("codec_id")
-        property_names.append("default_track")
-        property_names.append("display_dimensions")
-        property_names.append("enabled_track")
-        property_names.append("forced_track")
-        property_names.append("language")
-        property_names.append("language_ietf")
-        property_names.append("pixel_dimensions")
-        property_names.append("track_name")
-        property_names.append("uid")
+        property_names = mkvmergeutils.get_track_supported_property_names()
         for property_name in property_names:
             # Get value
             property_value_left = properties_left[property_name] if property_name in properties_left else None
@@ -308,6 +298,63 @@ def compute_json_differences(json_left: dict, json_right: dict):
     # end for each tracks
 
     return json_diff
+
+
+def get_mkvpropedit_args_for_diff(json_obj: dict, file_path: str):
+    args = list()
+    args.append("mkvpropedit")
+    args.append(file_path)
+    
+    new_title = mkvmergeutils.get_container_properties_title(json_obj)
+    if (not new_title is None):
+        args.append("--edit")
+        args.append("info")
+        args.append("--set")
+        args.append("title=" + new_title)
+
+    # Get all tracks, if any
+    if ('tracks' in json_obj):
+        tracks = json_obj['tracks']
+
+        # For each tracks
+        previous_track_index_edit = -1
+        for i in range(len(tracks)):
+            track = tracks[i]
+
+            # Skip track if no 'properties'
+            if (not 'properties' in track):
+                # Next track
+                continue
+
+            # For each property
+            property_names = mkvmergeutils.get_track_supported_property_names()
+            for property_name in property_names:
+                value = track['properties'][property_name] if property_name in track['properties'] else None
+                if (value is None):
+                    # Next property
+                    continue
+
+                mkvpropedit_set_argument = mkvmergeutils.get_mkvpropedit_set_argument_for_mkvmerge_property(property_name)
+                if (mkvpropedit_set_argument is None):
+                    print("Error, unable to get mkvpropedit property name for property '" + property_name + "'.")
+                    return None
+                
+                if (i != previous_track_index_edit):
+                    args.append("--edit")
+                    args.append("track:{0}".format(i+1)) # mkvpropedit's track number starts at 1
+                args.append("--set")
+                args.append("{name}={value}".format(name=mkvpropedit_set_argument, value=value))
+
+                # Remember last edited track index
+                previous_track_index_edit = i
+
+    if (len(args) <= 2):
+        # We did not build an actual command besides the 2 mandatory arguments
+        # Return an empty list instead
+        return list()
+
+    # Return the commands list
+    return args
 
 
 def main():
@@ -379,6 +426,12 @@ def main():
     # Update
     json_copy = update_properties_as_per_preferences(json_obj)
 
+    # DEBUG:
+    #json_copy['tracks'][1] = json_obj['tracks'][1]
+    #json_copy['tracks'][2] = json_obj['tracks'][2]
+    #json_copy['tracks'][3] = json_obj['tracks'][3]
+    #json_copy['tracks'][4] = json_obj['tracks'][4]
+
     # Save new metadata for debugging, if possible
     try:
         with open(input_abspath + ".fix.json", "w") as text_file:
@@ -399,6 +452,30 @@ def main():
     print("Input file requires the following changes in metadata:")
     diff_str = json.dumps(json_diff, indent=2)
     print(diff_str)
+
+    # Fail if we do not edit-in-place
+    if (not args.edit_in_place):
+        print("Modification of metadata without using edit-in-place is not supported")
+        return 1
+
+    # Build edit-in-place command    
+    mkvpropedit_args = get_mkvpropedit_args_for_diff(json_diff, input_abspath)
+    if (mkvpropedit_args is None or len(mkvpropedit_args) == 0):
+        print("Failed to get mkvpropedit command to edit file")
+        return 1
+
+    # Update metadata
+    try:
+        print("Updating meta data of file '" + input_abspath + "'.")
+        subprocess.check_output(mkvpropedit_args)
+    except subprocess.CalledProcessError as procexc:                                                                                                   
+        print("Failed to execute command '" + " ".join(mkvpropedit_args) + "'.\n")
+
+        output_str = procexc.output.decode("utf-8")
+        print("Error code: ", procexc.returncode, output_str)
+        return 1
+    print("done.")
+
 
 if __name__ == "__main__":
     main()

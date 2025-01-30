@@ -300,3 +300,37 @@ def get_container_properties_title(json_obj: dict):
     title = properties['title'] if "title" in properties else None
     return title
     
+
+def get_track_supported_property_names():
+    property_names = list()
+    property_names.append("default_track")
+    #property_names.append("display_dimensions")
+    property_names.append("enabled_track")
+    property_names.append("forced_track")
+    property_names.append("language")
+    property_names.append("language_ietf")
+    property_names.append("pixel_dimensions")
+    property_names.append("track_name")
+    property_names.append("uid")
+    return property_names
+
+def get_mkvpropedit_set_argument_for_mkvmerge_property(name: str):
+    # https://mkvtoolnix.download/doc/mkvpropedit.html#mkvpropedit.examples
+    # mkvpropedit --list-property-names to get all names
+    match name:
+        case "default_track":
+            return "flag-default"
+        case "enabled_track":
+            return "flag-enabled"
+        case "forced_track":
+            return "flag-forced"
+        case "language":
+            return "language"
+        case "language_ietf":
+            return "language-ietf"
+        case "track_name":
+            return "name"
+
+        # If an exact match is not confirmed, this last case will be used if provided
+        case _:
+            return None
