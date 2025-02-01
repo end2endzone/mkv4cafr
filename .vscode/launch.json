@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: mkv4cafr --input 'medias/test01.mkv' --edit-in-place",
+            "name": "mkv4cafr test01.mkv in-place",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/mkv4cafr.py",
@@ -16,6 +16,29 @@
                 "medias/test01.mkv",
                 "--edit-in-place"
             ]
+        },
+        {
+            "name": "mkv4cafr test01.mkv out-of-place (TEMP)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/mkv4cafr.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--input",
+                "medias/test01.mkv",
+                "--output",
+                "${env:TEMP}",
+            ]
+        },
+        {
+            "name": "Rebuild generated files",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/generate_medias.py",
+            "console": "integratedTerminal",
+            "args": [],
+            "cwd": "${workspaceFolder}",
         },
         {
             "name": "Python Debugger: Current File with Arguments",

@@ -7,6 +7,7 @@ import json
 import copy
 
 import findutils
+import fileutils
 import mkvtoolnixutils
 import mkvmergeutils
 
@@ -383,8 +384,8 @@ def main():
         print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")    
 
     print("Argument values:")
-    print("  input: " + str(args.input.name))
-    print("  output: " + str(args.output))
+    print("  input file: " + str(args.input.name))
+    print("  output directory: " + str(args.output))
     print("  edit-in-place: " + str(args.edit_in_place))
 
     # Search for mkvpropedit on the system
@@ -419,12 +420,6 @@ def main():
         return 1
     media_json_str = media_json_bytes.decode("utf-8")
 
-    # Save metadata for debugging, if possible
-    try:
-        with open(input_abspath + ".json", "wb") as binary_file:
-            binary_file.write(media_json_bytes)
-    except Exception as e: pass
-
     # Parse media json
     try:
         json_obj = json.loads(media_json_str)
@@ -440,14 +435,21 @@ def main():
     #json_copy['tracks'][3] = json_obj['tracks'][3]
     #json_copy['tracks'][4] = json_obj['tracks'][4]
 
-    # Save new metadata for debugging, if possible
-    try:
-        with open(input_abspath + ".fix.json", "w") as text_file:
-            #json.dump(json_copy, text_file)
-            #json_copy_str = json.dumps(json_copy, indent=4)
-            #print >> text_file, json_copy
-            json.dump(json_copy, text_file, indent=2)
-    except Exception as e: pass
+    # Save metadata for debugging, if possible.
+    # Only required if you edit in place.
+    if (args.edit_in_place):
+        try:
+            with open(input_abspath + ".backup.json", "wb") as binary_file:
+                binary_file.write(media_json_bytes)
+        except Exception as e: pass
+
+        try:
+            with open(input_abspath + ".fix.json", "w") as text_file:
+                #json.dump(json_copy, text_file)
+                #json_copy_str = json.dumps(json_copy, indent=4)
+                #print >> text_file, json_copy
+                json.dump(json_copy, text_file, indent=2)
+        except Exception as e: pass
 
     # Compute difference between json_obj and json_copy
     json_diff = compute_json_differences(json_obj, json_copy)
@@ -461,20 +463,29 @@ def main():
     diff_str = json.dumps(json_diff, indent=2)
     print(diff_str)
 
-    # Fail if we do not edit-in-place
+    # Set the target file to edit if we do not edit-in-place
+    target_file = input_abspath
     if (not args.edit_in_place):
-        print("Modification of metadata without using edit-in-place is not supported.")
-        return 1
+        print("Copying input file to output directory.")
+        target_file = fileutils.get_copy_file_to_directory_target(input_abspath, str(args.output))
+        print("Copying to target file '" + target_file + "'...")
+        success = fileutils.copy_file(input_abspath, target_file)
+        if (not success):
+            print("Failed to copy file to directory.")
+            return 1
+    input_abspath = "" # Make sure the rest of the code do not use the input file as reference
+
+    # Change the target file to be modified
 
     # Build edit-in-place command    
-    mkvpropedit_args = get_mkvpropedit_args_for_diff(json_diff, input_abspath)
+    mkvpropedit_args = get_mkvpropedit_args_for_diff(json_diff, target_file)
     if (mkvpropedit_args is None or len(mkvpropedit_args) == 0):
         print("Failed to get mkvpropedit command to edit file.")
         return 1
 
     # Update metadata
     try:
-        print("Updating meta data of file '" + input_abspath + "'.")
+        print("Updating meta data of file '" + target_file + "'.")
         subprocess.check_output(mkvpropedit_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute command '" + " ".join(mkvpropedit_args) + "'.\n")
