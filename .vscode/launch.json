@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "mkv4cafr CUSTOM FILE",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/mkv4cafr.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": "${command:pickArgs}",
+        },
+        {
             "name": "mkv4cafr test01.mkv in-place",
             "type": "debugpy",
             "request": "launch",
