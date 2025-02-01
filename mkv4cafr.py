@@ -66,10 +66,10 @@ def update_set_language_from_track_name_hints(json_obj: dict):
         if flags is None:
             continue
 
-        if (flags.find("VFQ") != 1):
+        if (flags.find("VFQ") != -1):
             json_obj['tracks'][track_index]['properties']['language'] = "fre"
             json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-CA"
-        elif (flags.find("VFF") != 1):
+        elif (flags.find("VFF") != -1):
             json_obj['tracks'][track_index]['properties']['language'] = "fre"
             json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-FR"
 
@@ -270,10 +270,13 @@ def compute_json_differences(json_left: dict, json_right: dict):
             property_value_left = properties_left[property_name] if property_name in properties_left else None
             property_value_right = properties_right[property_name] if property_name in properties_right else None
 
-            # Check for null
-            if (property_value_left is None or
+            # Check if property is not set on both sides (left and right)
+            if (property_value_left is None and 
                 property_value_right is None):
                 continue
+            # Force right property as an empty string (this will effectively force a change when transionning from `None` to ``. )
+            if (property_value_right is None):
+                property_value_right = ""
 
             if (property_value_left != property_value_right):
                 # Property has changed
@@ -457,10 +460,9 @@ def main():
     if (not args.edit_in_place):
         print("Copying input file to output directory.")
         target_file = fileutils.get_copy_file_to_directory_target(input_abspath, str(args.output))
-        print("Copying to target file '" + target_file + "'...")
         success = fileutils.copy_file(input_abspath, target_file)
         if (not success):
-            print("Failed to copy file to directory.")
+            print("Failed to copy file '" + target_file + "' to directory.")
             return 1
     input_abspath = "" # Make sure the rest of the code do not use the input file as reference
 
