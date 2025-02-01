@@ -89,8 +89,8 @@ def get_track_name_flags(track: dict):
         return None
     properties = track['properties']
     
-    track_name = str(properties['track_name']).upper() if 'track_name' in properties else None
-    track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else None
+    track_name = str(properties['track_name']).upper() if 'track_name' in properties else ""
+    track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else ""
 
     has_vff = (track_name.find("VFF") != -1)
     has_vfq = (track_name.find("VFQ") != -1)
