@@ -59,7 +59,7 @@ def update_set_language_from_track_name_hints(json_obj: dict):
     tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, ['audio', 'subtitles'])
     for track_index in tracks_indice:
         # Update the track
-        track = json_copy['tracks'][track_index]
+        track = json_obj['tracks'][track_index]
         if not "properties" in track:
             continue
         flags = mkvmergeutils.get_track_name_flags(track)
@@ -67,11 +67,11 @@ def update_set_language_from_track_name_hints(json_obj: dict):
             continue
 
         if (flags.find("VFQ") != 1):
-            json_copy['tracks'][track_index]['properties']['language'] = "fre"
-            json_copy['tracks'][track_index]['properties']['language_ietf'] = "fr-CA"
+            json_obj['tracks'][track_index]['properties']['language'] = "fre"
+            json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-CA"
         elif (flags.find("VFF") != 1):
-            json_copy['tracks'][track_index]['properties']['language'] = "fre"
-            json_copy['tracks'][track_index]['properties']['language_ietf'] = "fr-FR"
+            json_obj['tracks'][track_index]['properties']['language'] = "fre"
+            json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-FR"
 
 
 def update_audio_tracks_rename_all_track_names(json_obj: dict):
