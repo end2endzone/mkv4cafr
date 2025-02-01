@@ -15,7 +15,7 @@ import mkvmergeutils
 
 def print_header():
     print("mkv4cafr v1.0")
-    print()
+
 
 # Parse output directory
 # See https://gist.github.com/harrisont/ecb340616ab6f7cf11f99364fd57ef7e
@@ -23,6 +23,7 @@ def directory(raw_path):
     if not os.path.isdir(raw_path):
         raise argparse.ArgumentTypeError('"{}" is not an existing directory'.format(raw_path))
     return os.path.abspath(raw_path)
+
 
 def update_video_tracks_set_default_track_flag(json_obj: dict):
     tracks = json_obj['tracks'] if 'tracks' in json_obj else None
@@ -196,6 +197,8 @@ def update_properties_as_per_preferences(json_obj: dict):
 def compute_json_differences(json_left: dict, json_right: dict):
     json_diff = dict()
 
+    diff_found = False
+
     # Compare number of tracks
     tracks_left = json_left['tracks'] if 'tracks' in json_left else None
     tracks_right = json_right['tracks'] if 'tracks' in json_right else None
@@ -218,6 +221,7 @@ def compute_json_differences(json_left: dict, json_right: dict):
         json_diff['container'] = dict()
         json_diff['container']['properties'] = dict()
         json_diff['container']['properties']['title'] = title_right
+        diff_found = True
 
     # Create an empty track list
     if (not 'tracks' in json_diff):
@@ -290,6 +294,7 @@ def compute_json_differences(json_left: dict, json_right: dict):
 
                 # Set the property value as a diff
                 json_diff['tracks'][track_index]['properties'][property_name] = property_value_right
+                diff_found = True
                 
         # end for each property_name
 
@@ -297,6 +302,10 @@ def compute_json_differences(json_left: dict, json_right: dict):
 
     # end for each tracks
 
+    # Allow returning an empty dict() if no differences was found
+    if (diff_found == False):
+        json_diff = dict()
+    
     return json_diff
 
 
@@ -408,7 +417,6 @@ def main():
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to get json metadata for file '" + input_abspath + "'. Error code: ", procexc.returncode, procexc.output)
         return 1
-    print("done.")
     media_json_str = media_json_bytes.decode("utf-8")
 
     # Save metadata for debugging, if possible
@@ -446,7 +454,7 @@ def main():
 
     has_diff = bool(json_diff)
     if (not has_diff):
-        print("No modification required in input file metadata")
+        print("No modification required in input file metadata.")
         return 0
     
     print("Input file requires the following changes in metadata:")
@@ -455,13 +463,13 @@ def main():
 
     # Fail if we do not edit-in-place
     if (not args.edit_in_place):
-        print("Modification of metadata without using edit-in-place is not supported")
+        print("Modification of metadata without using edit-in-place is not supported.")
         return 1
 
     # Build edit-in-place command    
     mkvpropedit_args = get_mkvpropedit_args_for_diff(json_diff, input_abspath)
     if (mkvpropedit_args is None or len(mkvpropedit_args) == 0):
-        print("Failed to get mkvpropedit command to edit file")
+        print("Failed to get mkvpropedit command to edit file.")
         return 1
 
     # Update metadata

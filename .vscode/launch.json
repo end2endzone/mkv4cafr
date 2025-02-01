@@ -11,7 +11,11 @@
             "program": "${workspaceFolder}/mkv4cafr.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "args": "--input \"medias/test01.mkv\" --edit-in-place"
+            "args": [
+                "--input",
+                "medias/test01.mkv",
+                "--edit-in-place"
+            ]
         },
         {
             "name": "Python Debugger: Current File with Arguments",
