@@ -1,9 +1,6 @@
-import argparse
 import os
 import sys
-import getpass
 import subprocess
-import json
 
 import findutils
 import ffmpegutils
@@ -31,9 +28,9 @@ def format_timecode(time_abs_seconds):
     return time_str
 
 
-def generate_subtitle_timecodes_detailed(args):
+def generate_subtitle_timecodes_detailed(framerate: int, video_length_seconds: int, subtitles_count: int):
     # Compute details
-    interval_seconds = args.video_length / args.subtitles_count
+    interval_seconds = video_length_seconds / subtitles_count
 
     # Create subtitles
     #
@@ -47,10 +44,10 @@ def generate_subtitle_timecodes_detailed(args):
     #   25
     #   
     with open("medias/timecodes detailed.srt", "w") as text_file:
-        for i in range(args.subtitles_count):
+        for i in range(subtitles_count):
             sub_start_time = i * interval_seconds
             sub_stop_time = (i+1) * interval_seconds - 0.001
-            frame_number = int(sub_start_time * args.framerate)
+            frame_number = int(sub_start_time * framerate)
             
             text_file.write (str(i+1) + "\n")
             text_file.write("{0} --> {1}\n".format(format_timecode(sub_start_time), format_timecode(sub_stop_time)))
@@ -222,19 +219,6 @@ def generate_mkv_files():
 
 
 def main():
-    # Parse command line arguments
-    # See https://stackoverflow.com/questions/20063/whats-the-best-way-to-parse-command-line-arguments for example.
-    parser = argparse.ArgumentParser(description='generate ffmpeg video and audio files and subtitles for tests')
-
-    parser.add_argument('--framerate',          type=int, default=24,   help='Video framerate in frames per seconds')
-    parser.add_argument('--subtitles-count',    type=int, default=180,  help='How many subtitles must be generated')
-    parser.add_argument('--video-length',       type=int, default=60,   help='Video length in seconds')
-
-    try:
-        args = parser.parse_args()
-    except Exception as e:
-        print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")    
-
     # Find ffmpeg in path
     ffmpeg_exec_path = ffmpegutils.find_ffmpeg_exec_path_in_path()
     if ffmpeg_exec_path is None or not os.path.isfile(ffmpeg_exec_path):
@@ -257,20 +241,19 @@ def main():
     mkvmerge_exec_path    = os.path.join(mkvtoolnix_install_path, "mkvmerge"    + findutils.get_executable_file_extension_name())
     mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + findutils.get_executable_file_extension_name())
 
-    print("Argument values:")
-    print("  framerate: " + str(args.framerate))
-    print("  subtitles-count: " + str(args.subtitles_count))
-    print("  video-length: " + str(args.video_length))
-    print("")
-    print("")
 
     # Generate subtitles
-    generate_subtitle_timecodes_detailed(args)
+    framerate = 24
+    subtitles_count = 180
+    video_length_seconds = 60
+    generate_subtitle_timecodes_detailed(framerate, video_length_seconds, subtitles_count)
 
     # Generate video files
     generate_life_h264()
     generate_life_h265()
     generate_testsrc2()
+
+    # Generate audio files
     generate_audio_tracks()
 
     # Generate mkv files
