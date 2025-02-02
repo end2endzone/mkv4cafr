@@ -74,6 +74,94 @@ def update_set_language_from_track_name_hints(json_obj: dict):
             json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-FR"
 
 
+def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: dict, input_file_path: str):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
+    if (tracks is None):
+        return
+
+    flags = mkvmergeutils.get_track_name_flags_from_filename(input_file_path)
+
+    audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, "audio")
+    french_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['fre'])
+
+    total_audio_tracks_count = len(audio_tracks_indice)
+    french_audio_tracks_count = len(french_audio_tracks_indice)
+
+    # Handle cases where there is only a single French audio track.
+    # The track's language can be deduced from the flag in the file's name
+    if (flags in ['VFQ', 'VFF', 'VFI'] and french_audio_tracks_count == 1):
+        track_index = french_audio_tracks_indice[0]
+
+        track = json_obj['tracks'][track_index]
+        if not "properties" in track:
+            return
+
+        match flags:
+            case "VFQ":
+                mkvmergeutils.set_track_flag(json_obj, track_index, flags)
+            case "VFF":
+                mkvmergeutils.set_track_flag(json_obj, track_index, flags)
+            case "VFI":
+                mkvmergeutils.set_track_flag(json_obj, track_index, flags)
+            case _:
+                pass
+
+    if (flags in ['VF2'] and french_audio_tracks_count == 2):
+        vfq_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFQ'])
+        vff_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFF'])
+        vfi_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFI'])
+        vfq_audio_tracks_count = len(vfq_audio_tracks_indice)
+        vff_audio_tracks_count = len(vff_audio_tracks_indice)
+        vfi_audio_tracks_count = len(vfi_audio_tracks_indice)
+    
+        if (vfi_audio_tracks_count > 0):
+            return # We do not know which tracks must be forced set to VFF or VFQ
+        
+        # Force VFF on the second track if a single VFQ track is found
+        if (vfq_audio_tracks_count == 1 and vff_audio_tracks_count == 0):
+            # A VFQ track is found. The other track must be forced to VFF
+            for track_index in audio_tracks_indice:
+                # Ignore VFQ tracks
+                if (track_index in vfq_audio_tracks_indice):
+                    continue
+
+                # Update the track
+                mkvmergeutils.set_track_flag(json_obj, track_index, "VFF")
+
+                # Update
+                vff_audio_tracks_indice.append(track_index)
+                vff_audio_tracks_count = len(vff_audio_tracks_indice)
+
+        # Force VFQ on the second track if a single VFF track is found
+        if (vfq_audio_tracks_count == 0 and vff_audio_tracks_count == 1):
+            # A VFF track is found. The other track must be forced to VFQ
+            for track_index in audio_tracks_indice:
+                # Ignore VFF tracks
+                if (track_index in vff_audio_tracks_indice):
+                    continue
+
+                # Update the track
+                mkvmergeutils.set_track_flag(json_obj, track_index, "VFQ")
+
+                # Update
+                vfq_audio_tracks_indice.append(track_index)
+                vfq_audio_tracks_count = len(vfq_audio_tracks_indice)
+        
+    # Refresh
+    french_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['fre'])
+    vfq_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFQ'])
+    vff_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFF'])
+    vfi_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFI'])
+    french_audio_tracks_count = len(french_audio_tracks_indice)
+    vfq_audio_tracks_count = len(vfq_audio_tracks_indice)
+    vff_audio_tracks_count = len(vff_audio_tracks_indice)
+    vfi_audio_tracks_count = len(vfi_audio_tracks_indice)
+
+    # Final check
+    if (flags in ['VF2'] and vfi_audio_tracks_count == 0 and (vfq_audio_tracks_count == 0 or vff_audio_tracks_count == 0)):
+        print("WARNING: Failed to identify VFQ and VFF tracks in VF2 filename '" + input_file_path + "'.")
+
+
 def update_audio_tracks_rename_all_track_names(json_obj: dict):
     tracks = json_obj['tracks'] if 'tracks' in json_obj else None
     if (tracks is None):
@@ -160,7 +248,7 @@ def update_subtitle_tracks_default_track_from_forced_flag(json_obj: dict):
         json_obj["tracks"][track_index]["properties"]["default_track"] = True
 
 
-def update_properties_as_per_preferences(json_obj: dict):
+def update_properties_as_per_preferences(json_obj: dict, input_file_path: str):
     # Make a deep copy of all the json data
     json_copy = copy.deepcopy(json_obj)
 
@@ -176,6 +264,7 @@ def update_properties_as_per_preferences(json_obj: dict):
     update_video_tracks_set_default_track_flag(json_copy)
     update_video_tracks_remove_track_name(json_copy)
     update_set_language_from_track_name_hints(json_copy)
+    update_audio_tracks_language_or_track_name_from_input_file_name(json_copy, input_file_path)
     update_audio_tracks_rename_all_track_names(json_copy)
     update_audio_tracks_default_track(json_copy)
     update_subtitle_tracks_set_forced_flag_if_required(json_copy)
@@ -419,7 +508,7 @@ def main():
         print(str(e))
 
     # Update
-    json_copy = update_properties_as_per_preferences(json_obj)
+    json_copy = update_properties_as_per_preferences(json_obj, input_abspath)
 
     # DEBUG:
     #json_copy['tracks'][1] = json_obj['tracks'][1]

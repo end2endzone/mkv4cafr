@@ -12,14 +12,65 @@ def get_tracks_indice_by_type(input_tracks: list, type: str):
     return get_tracks_indice_by_type(input_tracks, types)
 
 
-def get_tracks_indice_by_type(input_tracks: list, types: list):
+def get_tracks_indice_by_type(input_tracks: list, accepted_types: list):
     matching_track_indice = list()
     for i in range(len(input_tracks)):
         track = input_tracks[i]
         track_index = i
         #properties = track['properties']
         track_type = track['type']
-        if (track_type in types):
+        if (track_type in accepted_types):
+            matching_track_indice.append(track_index)
+    return matching_track_indice
+
+
+def filter_tracks_indice_by_language(input_tracks: list, pre_filtered_track_indice: list, accepted_languages: list):
+    matching_track_indice = list()
+    for i in range(len(input_tracks)):
+        track = input_tracks[i]
+        track_index = i
+
+        # Skip this track if not already in pre_filtered_track_indice
+        if (track_index not in pre_filtered_track_indice):
+            continue
+
+        if ("properties" not in track):
+            continue
+        properties = track['properties']
+
+        track_language      = properties['language']        if 'language' in properties else ""
+        track_language_ietf = properties['language_ietf']   if 'language_ietf' in properties else ""
+
+        # Validate track's language against accepted languages.
+        valid = False
+        if (track_language != "" and track_language in accepted_languages):
+            valid = True
+        if (track_language_ietf != "" and track_language_ietf in accepted_languages):
+            valid = True
+
+        if (valid):
+            matching_track_indice.append(track_index)
+    return matching_track_indice
+
+
+def filter_tracks_indice_by_flag(input_tracks: list, pre_filtered_track_indice: list, accepted_flags: list):
+    matching_track_indice = list()
+    for i in range(len(input_tracks)):
+        track = input_tracks[i]
+        track_index = i
+
+        # Skip this track if not already in pre_filtered_track_indice
+        if (track_index not in pre_filtered_track_indice):
+            continue
+
+        if ("properties" not in track):
+            continue
+        properties = track['properties']
+
+        track_flags = get_track_name_flags(track)
+
+        # Validate track's flags against accepted flags.
+        if (track_flags in accepted_flags):
             matching_track_indice.append(track_index)
     return matching_track_indice
 
@@ -84,6 +135,29 @@ def get_first_video_track_codec_friendly_name(tracks: list):
     return None
 
 
+def test_flag_in_string(value: str, flag: str):
+    value_upper = value.upper()
+
+    # define previous accepted characters
+    valid_previous_characters = ['\0', ' ', '.', ',', '-', '(', '[']
+    valid_next_characters     = ['\0', ' ', '.', ',', '-', ')', ']']
+
+    search_pos = 0
+    find_pos = value_upper.find(flag, search_pos)
+    while(find_pos != -1):
+        prev_char = value_upper[find_pos - 1] if find_pos > 0 else '\0'
+        next_char = value_upper[find_pos + len(flag)] if (find_pos + len(flag)) < len(value_upper) else '\0'
+
+        if (prev_char in valid_previous_characters and next_char in valid_next_characters):
+            return True
+
+        # search next
+        search_pos += 1
+        find_pos = value_upper.find(flag, search_pos)
+
+    return False
+
+
 def get_track_name_flags(track: dict):
     if not "properties" in track:
         return None
@@ -92,13 +166,17 @@ def get_track_name_flags(track: dict):
     track_name = str(properties['track_name']).upper() if 'track_name' in properties else ""
     track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else ""
 
-    has_vff = (track_name.find("VFF") != -1)
-    has_vfq = (track_name.find("VFQ") != -1)
-    has_vfi = (track_name.find("VFI") != -1)
-    has_vo = (track_name.find("VO") != -1)
+    #has_vff = (track_name.find("VFF") != -1)
+    #has_vfq = (track_name.find("VFQ") != -1)
+    #has_vfi = (track_name.find("VFI") != -1)
+    #has_vo = (track_name.find("VO") != -1)
+    #has_vff |= (track_language_ietf == "fr-FR")
+    #has_vfq |= (track_language_ietf == "fr-CA")
 
-    has_vff |= (track_language_ietf == "fr-FR")
-    has_vfq |= (track_language_ietf == "fr-CA")
+    has_vff = test_flag_in_string(track_name, "VFF") or (track_language_ietf == "fr-FR")
+    has_vfq = test_flag_in_string(track_name, "VFQ") or (track_language_ietf == "fr-CA")
+    has_vfi = test_flag_in_string(track_name, "VFI")
+    has_vo  = test_flag_in_string(track_name, "VO")
 
     if ( has_vff ):
       return "VFF"
@@ -109,6 +187,20 @@ def get_track_name_flags(track: dict):
     if ( has_vo ):
       return "VO"
 
+    return None
+
+
+def get_track_name_flags_from_filename(file_path: str):
+    if (test_flag_in_string(file_path, "VF2")):
+        return "VF2"
+    if (test_flag_in_string(file_path, "VFF")):
+        return "VFF"
+    if (test_flag_in_string(file_path, "VFQ")):
+        return "VFQ"
+    if (test_flag_in_string(file_path, "VFI")):
+        return "VFI"
+    if (test_flag_in_string(file_path, "VO")):
+        return "VO"
     return None
 
 
@@ -301,6 +393,90 @@ def get_container_properties_title(json_obj: dict):
     return title
     
 
+def get_track_property_value(json_obj: dict, track_index: int, property_name: str):
+    if not "tracks" in json_obj:
+        return None
+    tracks = json_obj['tracks']
+
+    # Validate track_index
+    if (track_index < 0 or track_index >= len(tracks)):
+        return None
+    track = tracks[track_index]
+
+    # Validate track's properties
+    if not "properties" in track:
+        return None
+    properties = track['properties']
+
+    # Validate specific property name
+    if not property_name in properties:
+        return None
+    value = properties[property_name]
+
+    return value
+
+
+def set_track_property_value(json_obj: dict, track_index: int, property_name: str, property_value: str):
+    if not "tracks" in json_obj:
+        return False
+    tracks = json_obj['tracks']
+
+    # Validate track_index
+    if (track_index < 0 or track_index >= len(tracks)):
+        return False
+    track = tracks[track_index]
+
+    # Validate track's properties
+    if not "properties" in track:
+        return False
+    properties = track['properties']
+
+    # Set value
+    json_obj['tracks'][track_index]['properties'][property_name] = property_value
+    return True
+
+
+def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
+    if not "tracks" in json_obj:
+        return False
+    tracks = json_obj['tracks']
+
+    # Validate track_index
+    if (track_index < 0 or track_index >= len(tracks)):
+        return False
+    track = tracks[track_index]
+
+    # Validate track's properties
+    if not "properties" in track:
+        return False
+    properties = track['properties']
+        
+    # Force flag in track_name, if not present
+    flags_track_name = get_track_name_flags(track)
+    if flags_track_name is None:
+        # The track does not already have a flag indicator
+        new_track_name = get_track_property_value(json_obj, track_index, "track_name")
+        if (new_track_name is None):
+            new_track_name = ""
+        new_track_name += " (" + flag_value + ")"
+        set_track_property_value(json_obj, track_index, 'track_name', new_track_name)
+
+    # Update language
+    match flag_value:
+        case "VFQ":
+            set_track_property_value(json_obj, track_index, 'language', 'fre')
+            set_track_property_value(json_obj, track_index, 'language_ietf', 'fr-CA')
+        case "VFF":
+            set_track_property_value(json_obj, track_index, 'language', 'fre')
+            set_track_property_value(json_obj, track_index, 'language_ietf', 'fr-FR')
+        case "VFI":
+            set_track_property_value(json_obj, track_index, 'language', 'fre')
+        case _:
+            # VF2
+            print("Unknown track flag '" + flag_value + "' used in function 'set_track_flag()'.")
+            pass
+
+
 def get_track_supported_property_names():
     property_names = list()
     property_names.append("default_track")
@@ -313,6 +489,7 @@ def get_track_supported_property_names():
     property_names.append("track_name")
     property_names.append("uid")
     return property_names
+
 
 def get_mkvpropedit_set_argument_for_mkvmerge_property(name: str):
     # https://mkvtoolnix.download/doc/mkvpropedit.html#mkvpropedit.examples
