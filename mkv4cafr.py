@@ -15,7 +15,7 @@ import mkvmergeutils
 # N/A
 
 def print_header():
-    print("mkv4cafr v1.0")
+    print("mkv4cafr v0.1.0")
 
 
 # Parse output directory
