@@ -21,7 +21,7 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": [
-                "--input",
+                "--input-file",
                 "medias/test01.mkv",
                 "--edit-in-place"
             ]
@@ -34,9 +34,9 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": [
-                "--input",
+                "--input-file",
                 "medias/test01.mkv",
-                "--output",
+                "--output-dir",
                 "${env:TEMP}",
             ]
         },
