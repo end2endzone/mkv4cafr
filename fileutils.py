@@ -1,5 +1,6 @@
 import os
 import io
+import time
 import shutil
 import argparse
 
@@ -17,6 +18,75 @@ def copy_file(input_path: str, output_path: str):
     except shutil.Error as err:
         print(err)
         return False
+    return True
+
+
+def get_progress_bar_string(actual: int, total: int, max_length: int):
+    fill_length = int(actual/total*max_length)
+    remaining_length = max_length - fill_length
+    output = '>'*fill_length + '-'*remaining_length
+    return output
+
+
+def get_spinning_cursor():
+    DIGIT_DISPLAY_TIME_MS = 75
+    DIGITS = "-\\|/"
+    elapsed_time_ms = int(time.time() * 1000)
+    digit_index = int(elapsed_time_ms / DIGIT_DISPLAY_TIME_MS) % len(DIGITS)
+    return DIGITS[digit_index]
+
+
+def print_progress_bar(actual: int, total: int):
+    # Example:
+    # - [>>>>>>>>>>] 100%
+    
+    percent = int(actual/total*100.0)
+    
+    MAX_BAR_LENGTH = os.get_terminal_size().columns - 1 # -1 to leave space for the cursor position 1 character after the text
+    MINIMUM_BAR_LENGTH = len("- [] 100% ")
+    INDENT = 1
+    progress_width = MAX_BAR_LENGTH - MINIMUM_BAR_LENGTH - INDENT
+    if (progress_width < 10):
+        progress_width = 10
+
+    spinner = get_spinning_cursor()
+    bar = spinner + ' '*INDENT + '[' + get_progress_bar_string(actual, total, progress_width) + "] " + format(percent, "3d") + "% "
+    print("\r" + bar, end="", flush=True)
+
+    return len(bar)
+
+
+def copy_file_with_progress(input_path: str, output_path: str):
+    try:
+        bar_lenght = 0
+        chunk_size = 10*1024*1024 # 10Mb chunk size
+        input_size = os.path.getsize(input_path)
+        output_size = 0
+        with open(input_path, 'rb') as fin:
+            with open(output_path, 'wb') as fout:
+
+                # read a chunk of the input file
+                data = fin.read(chunk_size)
+
+                while (len(data) > 0):
+                    # write this chunk to the output file
+                    fout.write(data)
+                    output_size += len(data)
+
+                    # and update the progress on screen
+                    bar_lenght = print_progress_bar(output_size, input_size)
+
+                    # read the next chunk
+                    data = fin.read(chunk_size)
+
+    except shutil.Error as err:
+        print("") # new line. go 1 line below the progress bar
+        print(err)
+        return False
+    
+    # Erase copying bar
+    print("\r" + ' '*bar_lenght + "\r", end="", flush=True)
+
     return True
 
 

@@ -608,7 +608,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
     if (not edit_in_place):
         print("Copying input file to output directory.")
         target_file = fileutils.get_copy_file_to_directory_target(input_abspath, output_dir_path)
-        success = fileutils.copy_file(input_abspath, target_file)
+        success = fileutils.copy_file_with_progress(input_abspath, target_file)
         if (not success):
             print("Failed to copy file '" + target_file + "' to directory.")
             return 1
