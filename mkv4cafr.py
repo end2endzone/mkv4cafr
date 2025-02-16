@@ -486,8 +486,15 @@ def main():
     mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + findutils.get_executable_file_extension_name())
     print("Found mkvpropedit: " + mkvpropedit_exec_path)
 
+    # Process the input file
+    exit_code = process_file(args.input.name, str(args.output), args.edit_in_place)
+    return exit_code
+
+
+def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool):
+
     # Validate if file exists
-    input_abspath = os.path.abspath(args.input.name)
+    input_abspath = os.path.abspath(input_file_path)
     if not os.path.isfile(input_abspath):
         print("File '" + input_abspath + "' not found.")
         return 1
@@ -518,7 +525,7 @@ def main():
 
     # Save metadata for debugging, if possible.
     # Only required if you edit in place.
-    if (args.edit_in_place):
+    if (edit_in_place):
         try:
             with open(input_abspath + ".backup.json", "wb") as binary_file:
                 binary_file.write(media_json_bytes)
@@ -546,9 +553,9 @@ def main():
 
     # Set the target file to edit if we do not edit-in-place
     target_file = input_abspath
-    if (not args.edit_in_place):
+    if (not edit_in_place):
         print("Copying input file to output directory.")
-        target_file = fileutils.get_copy_file_to_directory_target(input_abspath, str(args.output))
+        target_file = fileutils.get_copy_file_to_directory_target(input_abspath, output_dir_path)
         success = fileutils.copy_file(input_abspath, target_file)
         if (not success):
             print("Failed to copy file '" + target_file + "' to directory.")
