@@ -193,7 +193,7 @@ def get_track_name_flags(track: dict):
 def get_track_name_flags_from_filename(file_path: str):
     if (test_flag_in_string(file_path, "VF2")):
         return "VF2"
-    if (test_flag_in_string(file_path, "VFF")):
+    if (test_flag_in_string(file_path, "VFF") or test_flag_in_string(file_path, "TrueFrench")):
         return "VFF"
     if (test_flag_in_string(file_path, "VFQ")):
         return "VFQ"
