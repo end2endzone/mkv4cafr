@@ -5,6 +5,7 @@ import getpass
 import subprocess
 import json
 import copy
+import glob
 
 import findutils
 import fileutils
@@ -20,7 +21,15 @@ def print_header():
 
 # Parse output directory
 # See https://gist.github.com/harrisont/ecb340616ab6f7cf11f99364fd57ef7e
-def directory(raw_path):
+def directory_must_exist(raw_path):
+    if not os.path.isdir(raw_path):
+        raise argparse.ArgumentTypeError('"{}" is not an existing directory'.format(raw_path))
+    return os.path.abspath(raw_path)
+
+
+def directory_must_exist_if_specified(raw_path):
+    if (raw_path is None):
+        return ""
     if not os.path.isdir(raw_path):
         raise argparse.ArgumentTypeError('"{}" is not an existing directory'.format(raw_path))
     return os.path.abspath(raw_path)
@@ -455,8 +464,9 @@ def main():
     # See https://stackoverflow.com/questions/20063/whats-the-best-way-to-parse-command-line-arguments for example.
     parser = argparse.ArgumentParser(description='mkv4cafr sets properties of mkv files for Canadian French viewers')
 
-    parser.add_argument('-i', '--input', type=argparse.FileType('r'), help='input mkv file', required=True)
-    parser.add_argument('-o', '--output', type=directory, default=os.path.curdir, help='output mkv file')
+    parser.add_argument('-f', '--input-file', type=argparse.FileType('rb'), help='input mkv file')
+    parser.add_argument('-d', '--input-dir', action='store', type=str, help='input mkv directory', default="")
+    parser.add_argument('-o', '--output-dir', type=directory_must_exist_if_specified, default=os.path.curdir, help='output directory')
     parser.add_argument('-e', '--edit-in-place', action='store_true', help='Process input file in place')
 
     try:
@@ -465,9 +475,21 @@ def main():
         print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")    
 
     print("Argument values:")
-    print("  input file: " + str(args.input.name))
-    print("  output directory: " + str(args.output))
+    print("  input file: " + fileutils.get_str_path_or_empty_str(args.input_file) )
+    print("  input directory: " + fileutils.get_str_path_or_empty_str(args.input_dir))
+    print("  output directory: " + fileutils.get_str_path_or_empty_str(args.output_dir))
     print("  edit-in-place: " + str(args.edit_in_place))
+
+    # Valide input arguments
+    if (fileutils.get_str_path_or_none(args.input_dir) != None and fileutils.get_str_path_or_none(args.input_file) != None):
+        print("<input file> and <input directory> are mutually exclusive.")
+        return 1
+    if (fileutils.get_str_path_or_none(args.input_dir) == None and fileutils.get_str_path_or_none(args.input_file) == None):
+        print("Must specify <input file> or <input directory>.")
+        return 1
+    if (not args.edit_in_place and fileutils.get_str_path_or_none(args.output_dir) == None):
+        print("Must specify <output directory> if not editing in-place.")
+        return 1
 
     # Search for mkvpropedit on the system
     mkvtoolnix_install_path = mkvtoolnixutils.find_mkvtoolnix_dir_in_path()
@@ -486,9 +508,39 @@ def main():
     mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + findutils.get_executable_file_extension_name())
     print("Found mkvpropedit: " + mkvpropedit_exec_path)
 
-    # Process the input file
-    exit_code = process_file(args.input.name, str(args.output), args.edit_in_place)
-    return exit_code
+    # If we run in input directory mode
+    if (fileutils.get_str_path_or_none(args.input_dir) != None):
+        # Validate if directory exists
+        input_dir_abspath = os.path.abspath(fileutils.get_str_path_or_empty_str(args.input_dir))
+        if not os.path.isdir(input_dir_abspath):
+            print("Directory '" + input_dir_abspath + "' not found.")
+            return 1
+
+        # Find all *.mkv files
+        mkv_files = []
+        for mkv_file in glob.glob(glob.escape(input_dir_abspath) + "/*.mkv"):
+            mkv_files.append(mkv_file)
+
+        print("Processing " + str(len(mkv_files)) + " mkv files from input directory '" + input_dir_abspath + "'.")
+        for i in range(len(mkv_files)):
+            mkv_file_path = mkv_files[i]
+            print("Processing file " + str(i+1) + " of " + str(len(mkv_files)) + ": '" + mkv_file_path + "'.")
+            exit_code = process_file(mkv_file_path, str(args.output_dir), args.edit_in_place)
+            if (exit_code != 0):
+                print("Failed processing file " + str(i+1) + " of " + str(len(mkv_files)) + ": '" + mkv_file_path + "'!")
+                return exit_code
+            
+        print("done.")
+        return 0
+    
+    # or we run in input file mode
+    elif (fileutils.get_str_path_or_none(args.input_file) != None):
+        exit_code = process_file(fileutils.get_str_path_or_empty_str(args.input_file), str(args.output_dir), args.edit_in_place)
+        print("done.")
+        return exit_code
+    else:
+        print("Nothing to do!")
+        return 1
 
 
 def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool):
@@ -580,7 +632,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
         output_str = procexc.output.decode("utf-8")
         print("Error code: ", procexc.returncode, output_str)
         return 1
-    print("done.")
+    return 0
 
 
 if __name__ == "__main__":
