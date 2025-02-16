@@ -465,9 +465,9 @@ def main():
     parser = argparse.ArgumentParser(description='mkv4cafr sets properties of mkv files for Canadian French viewers')
 
     parser.add_argument('-f', '--input-file', type=argparse.FileType('rb'), help='input mkv file')
-    parser.add_argument('-d', '--input-dir', action='store', type=str, help='input mkv directory', default="")
+    parser.add_argument('-d', '--input-dir', action='store', type=str, help='input mkv directory', default=None)
     parser.add_argument('-o', '--output-dir', type=directory_must_exist_if_specified, default=os.path.curdir, help='output directory')
-    parser.add_argument('-e', '--edit-in-place', action='store_true', help='Process input file in place')
+    parser.add_argument('-e', '--edit-in-place', action='store_true', help='Process input file in place', default=False)
 
     try:
         args = parser.parse_args()
