@@ -11,6 +11,7 @@ import findutils
 import fileutils
 import mkvtoolnixutils
 import mkvmergeutils
+import jsonutils
 
 # Constants
 # N/A
@@ -543,6 +544,14 @@ def main():
         return 1
 
 
+def indent_string(value: str, indent: int):
+    lines = value.split("\n")
+    for i in range(len(lines)):
+        lines[i] = (' '*indent) + lines[i]
+    output = '\n'.join(lines)
+    return output
+
+
 def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool):
 
     # Validate if file exists
@@ -600,13 +609,15 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
         return 0
     
     print("Input file requires the following changes in metadata:")
-    diff_str = json.dumps(json_diff, indent=2)
+    #diff_str = json.dumps(json_diff, indent=2)
+    diff_str = jsonutils.dump_details(json_diff)
+    diff_str = indent_string(diff_str, 2)
     print(diff_str)
 
     # Set the target file to edit if we do not edit-in-place
     target_file = input_abspath
     if (not edit_in_place):
-        print("Copying input file to output directory.")
+        print("Copying input file to output directory...")
         target_file = fileutils.get_copy_file_to_directory_target(input_abspath, output_dir_path)
         success = fileutils.copy_file_with_progress(input_abspath, target_file)
         if (not success):
