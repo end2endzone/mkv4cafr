@@ -67,11 +67,14 @@ def filter_tracks_indice_by_flag(input_tracks: list, pre_filtered_track_indice: 
             continue
         properties = track['properties']
 
-        track_flags = get_track_name_flags(track)
+        track_flags_str = get_track_name_flags(track)
 
         # Validate track's flags against accepted flags.
-        if (track_flags in accepted_flags):
-            matching_track_indice.append(track_index)
+        if (not track_flags_str is None ):
+            track_flags_array = track_flags_str.split(',')
+            for flag in track_flags_array:
+                if (flag in accepted_flags):
+                    matching_track_indice.append(track_index)
     return matching_track_indice
 
 
@@ -159,6 +162,14 @@ def test_flag_in_string(value: str, flag: str):
 
 
 def get_track_name_flags(track: dict):
+    flags_array = get_track_name_flags_array(track)
+    if (flags_array is None):
+        return None
+    flags_str = ','.join(flags_array)
+    return flags_str
+
+
+def get_track_name_flags_array(track: dict):
     if not "properties" in track:
         return None
     properties = track['properties']
@@ -166,28 +177,31 @@ def get_track_name_flags(track: dict):
     track_name = str(properties['track_name']).upper() if 'track_name' in properties else ""
     track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else ""
 
-    #has_vff = (track_name.find("VFF") != -1)
-    #has_vfq = (track_name.find("VFQ") != -1)
-    #has_vfi = (track_name.find("VFI") != -1)
-    #has_vo = (track_name.find("VO") != -1)
-    #has_vff |= (track_language_ietf == "fr-FR")
-    #has_vfq |= (track_language_ietf == "fr-CA")
-
     has_vff = test_flag_in_string(track_name, "VFF") or (track_language_ietf == "fr-FR")
     has_vfq = test_flag_in_string(track_name, "VFQ") or (track_language_ietf == "fr-CA")
     has_vfi = test_flag_in_string(track_name, "VFI")
     has_vo  = test_flag_in_string(track_name, "VO")
+    has_ad  = test_flag_in_string(track_name, "AD")
+    has_dvd = test_flag_in_string(track_name, "DVD")
 
+    flags = list()
     if ( has_vff ):
-      return "VFF"
+      flags.append("VFF")
     if ( has_vfq ):
-      return "VFQ"
+      flags.append("VFQ")
     if ( has_vfi ):
-      return "VFI"
+      flags.append("VFI")
     if ( has_vo ):
-      return "VO"
+      flags.append("VO")
+    if ( has_ad ):
+      flags.append("AD")
+    if ( has_dvd ):
+      flags.append("DVD")
 
-    return None
+    if (len(flags) == 0):
+        return None
+    
+    return flags
 
 
 def get_track_name_flags_from_filename(file_path: str):
