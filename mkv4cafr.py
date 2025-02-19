@@ -92,7 +92,7 @@ def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: di
     flags = mkvmergeutils.get_track_name_flags_from_filename(input_file_path)
 
     audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, "audio")
-    french_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['fre'])
+    french_audio_tracks_indice = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['fre'])
 
     total_audio_tracks_count = len(audio_tracks_indice)
     french_audio_tracks_count = len(french_audio_tracks_indice)
@@ -129,8 +129,8 @@ def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: di
         
         # Force VFF on the second track if a single VFQ track is found
         if (vfq_audio_tracks_count == 1 and vff_audio_tracks_count == 0):
-            # A VFQ track is found. The other track must be forced to VFF
-            for track_index in audio_tracks_indice:
+            # A VFQ track is found. The other french track must be forced to VFF
+            for track_index in french_audio_tracks_indice:
                 # Ignore VFQ tracks
                 if (track_index in vfq_audio_tracks_indice):
                     continue
@@ -144,8 +144,8 @@ def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: di
 
         # Force VFQ on the second track if a single VFF track is found
         if (vfq_audio_tracks_count == 0 and vff_audio_tracks_count == 1):
-            # A VFF track is found. The other track must be forced to VFQ
-            for track_index in audio_tracks_indice:
+            # A VFF track is found. The other french track must be forced to VFQ
+            for track_index in french_audio_tracks_indice:
                 # Ignore VFF tracks
                 if (track_index in vff_audio_tracks_indice):
                     continue
