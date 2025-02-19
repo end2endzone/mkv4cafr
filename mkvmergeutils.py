@@ -485,9 +485,12 @@ def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
         set_track_property_value(json_obj, track_index, 'track_name', new_track_name)
 
     # Validate we did not messed up
-    actual_track_language = get_track_property_value(json_obj, track_index, "language")
-    if (actual_track_language != "fre"):
-        raise TypeError('Can\'t change a track language! Property \'language\' for track at index {0} is already set to \'{1}\'.'.format(track_index, actual_track_language))
+    if (flag_value in ["VFQ", "VFF", "VFI"]):
+        # Setting the track language as "French", make sure the existing language is not something else!
+        actual_track_language = get_track_property_value(json_obj, track_index, "language")
+        actual_track_language_valid = (actual_track_language in ["", "und", "fre"])
+        if (not actual_track_language_valid):
+            raise TypeError('Can\'t change a track language! Property \'language\' for track at index {0} is already set to \'{1}\'.'.format(track_index, actual_track_language))
 
     # Update language
     match flag_value:
@@ -499,6 +502,9 @@ def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
             set_track_property_value(json_obj, track_index, 'language_ietf', 'fr-FR')
         case "VFI":
             set_track_property_value(json_obj, track_index, 'language', 'fre')
+        case "VO":
+            # Nothing to do
+            pass
         case _:
             # VF2
             print("Unknown track flag '" + flag_value + "' used in function 'set_track_flag()'.")

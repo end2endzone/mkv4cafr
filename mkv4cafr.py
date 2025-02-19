@@ -157,6 +157,22 @@ def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: di
                 vfq_audio_tracks_indice.append(track_index)
                 vfq_audio_tracks_count = len(vfq_audio_tracks_indice)
         
+        # If a single english audio track is left, then it must certainy be VO
+        # refresh counters
+        audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, "audio")
+        french_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['fre'])
+        total_audio_tracks_count = len(audio_tracks_indice)
+        french_audio_tracks_count = len(french_audio_tracks_indice)
+
+        english_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['eng'])
+        if ((total_audio_tracks_count - french_audio_tracks_count) == 1 and len(english_audio_tracks_indice) == 1 ):
+            # Yes, the english track must certainy be VO
+            track_index = english_audio_tracks_indice[0]
+
+            # Update the track
+            mkvmergeutils.set_track_flag(json_obj, track_index, "VO")
+
+
     # Refresh
     french_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['fre'])
     vfq_audio_tracks_indice     = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFQ'])
