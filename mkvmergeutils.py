@@ -118,14 +118,20 @@ def get_codec_friendly_name(name: str):
 
 
 def get_audio_channel_layout_friendly_name(num_channels: int):
+    if num_channels == 1:
+        return "1.0"
     if num_channels == 2:
         return "2.0"
+    if num_channels == 3:
+        return "2.1"
     elif num_channels == 6:
         return "5.1"
     elif num_channels == 8:
         return "7.1"
+    elif num_channels == 10:
+        return "9.1"
     
-    return "{0}.x".format(num_channels)
+    return "{0}.0".format(num_channels)
 
 
 def get_first_video_track_codec_friendly_name(tracks: list):
@@ -177,12 +183,13 @@ def get_track_name_flags_array(track: dict):
     track_name = str(properties['track_name']).upper() if 'track_name' in properties else ""
     track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else ""
 
-    has_vff = test_flag_in_string(track_name, "VFF") or (track_language_ietf == "fr-FR")
-    has_vfq = test_flag_in_string(track_name, "VFQ") or (track_language_ietf == "fr-CA")
+    has_vff = test_flag_in_string(track_name, "VFF") or (track_language_ietf == "fr-FR") or test_flag_in_string(track_name, "FRANCE")
+    has_vfq = test_flag_in_string(track_name, "VFQ") or (track_language_ietf == "fr-CA") or test_flag_in_string(track_name, "CA") or test_flag_in_string(track_name, "CANADIAN") or test_flag_in_string(track_name, "CANADIEN")
     has_vfi = test_flag_in_string(track_name, "VFI")
-    has_vo  = test_flag_in_string(track_name, "VO")
+    has_vo  = test_flag_in_string(track_name, "VO") or (track_language_ietf == "en-US") # assume US tracks are original tracks
     has_ad  = test_flag_in_string(track_name, "AD")
     has_dvd = test_flag_in_string(track_name, "DVD")
+    has_sdh = test_flag_in_string(track_name, "SDH")
 
     flags = list()
     if ( has_vff ):
@@ -197,6 +204,8 @@ def get_track_name_flags_array(track: dict):
       flags.append("AD")
     if ( has_dvd ):
       flags.append("DVD")
+    if ( has_sdh ):
+      flags.append("SDH")
 
     if (len(flags) == 0):
         return None
@@ -474,6 +483,11 @@ def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
             new_track_name = ""
         new_track_name += " (" + flag_value + ")"
         set_track_property_value(json_obj, track_index, 'track_name', new_track_name)
+
+    # Validate we did not messed up
+    actual_track_language = get_track_property_value(json_obj, track_index, "language")
+    if (actual_track_language != "fre"):
+        raise TypeError('Can\'t change a track language! Property \'language\' for track at index {0} is already set to \'{1}\'.'.format(track_index, actual_track_language))
 
     # Update language
     match flag_value:
