@@ -426,8 +426,12 @@ def get_mkvpropedit_args_for_diff(json_obj: dict, file_path: str):
     if (not new_title is None):
         args.append("--edit")
         args.append("info")
-        args.append("--set")
-        args.append("title=" + new_title)
+        if (new_title != ""):
+            args.append("--set")
+            args.append("title=" + new_title)
+        else:
+            args.append("--delete")
+            args.append("title")
 
     # Get all tracks, if any
     if ('tracks' in json_obj):
@@ -459,8 +463,13 @@ def get_mkvpropedit_args_for_diff(json_obj: dict, file_path: str):
                 if (i != previous_track_index_edit):
                     args.append("--edit")
                     args.append("track:{0}".format(i+1)) # mkvpropedit's track number starts at 1
-                args.append("--set")
-                args.append("{name}={value}".format(name=mkvpropedit_set_argument, value=value))
+                
+                if (value != ""):
+                    args.append("--set")
+                    args.append("{prop_name}={prop_value}".format(prop_name=mkvpropedit_set_argument, prop_value=value))
+                else:
+                    args.append("--delete")
+                    args.append("{prop_name}".format(prop_name=mkvpropedit_set_argument))
 
                 # Remember last edited track index
                 previous_track_index_edit = i
