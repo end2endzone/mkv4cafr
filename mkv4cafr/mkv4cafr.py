@@ -7,7 +7,7 @@ import json
 import copy
 import glob
 
-from mkv4cafrlib import mkv4cafr
+from mkv4cafrlib import mkv4cafrlib
 from mkv4cafrlib import findutils
 from mkv4cafrlib import fileutils
 from mkv4cafrlib import mkvtoolnixutils
@@ -149,10 +149,10 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
         print(str(e))
 
     # Update
-    json_copy = mkv4cafr.update_properties_as_per_preferences(json_obj, input_abspath)
+    json_copy = mkv4cafrlib.update_properties_as_per_preferences(json_obj, input_abspath)
 
     # Validate inconsistencies
-    has_inconsistencies = mkv4cafr.validate_inconsistencies(json_obj, input_abspath)
+    has_inconsistencies = mkv4cafrlib.validate_inconsistencies(json_obj, input_abspath)
     if (has_inconsistencies == False or has_inconsistencies is None):
         print("Inconsistencies were found during metadata validation for file '" + input_abspath + "'.")
         print("Aborting update.")
@@ -181,7 +181,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
         except Exception as e: pass
 
     # Compute difference between json_obj and json_copy
-    json_diff = mkv4cafr.compute_json_differences(json_obj, json_copy)
+    json_diff = mkv4cafrlib.compute_json_differences(json_obj, json_copy)
 
     has_diff = bool(json_diff)
     if (not has_diff):
@@ -208,7 +208,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
     # Change the target file to be modified
 
     # Build edit-in-place command    
-    mkvpropedit_args = mkv4cafr.get_mkvpropedit_args_for_diff(json_diff, target_file)
+    mkvpropedit_args = mkv4cafrlib.get_mkvpropedit_args_for_diff(json_diff, target_file)
     if (mkvpropedit_args is None or len(mkvpropedit_args) == 0):
         print("Failed to get mkvpropedit command to edit file.")
         return 1
