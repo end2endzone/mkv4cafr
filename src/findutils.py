@@ -18,6 +18,19 @@ def find_file_in_path(file_name):
     return find_file_in_hints(file_name, path_list)
 
 
+def find_exec_in_path(file_name):
+    path_list = os.environ['PATH'].split(os.pathsep)
+    # find as is
+    location = find_file_in_hints(file_name, path_list)
+    if (location != None):
+        return location
+    # find as an executable
+    location = find_file_in_hints(file_name + get_executable_file_extension_name(), path_list)
+    if (location != None):
+        return location
+    return None
+
+
 def find_file_in_hints(file_name, hints):
     for path_entry in hints:
         full_path = os.path.join(path_entry,file_name)
@@ -32,4 +45,3 @@ def is_absolute_file_in_path(exec_path: str):
     if (file_abs_path is None):
         return True
     return False
-
