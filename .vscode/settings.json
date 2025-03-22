@@ -3,5 +3,17 @@
         ".", "-v"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "terminal.integrated.env.linux": {
+        // Allow the app code to use statement such as `from mypythonlib import myfunctions` 
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}"
+    },
+    "terminal.integrated.env.osx": {
+        // Allow the app code to use statement such as `from mypythonlib import myfunctions` 
+        "PYTHONPATH": "${env:PYTHONPATH}:${workspaceFolder}"
+    },
+    "terminal.integrated.env.windows": {
+        // Allow the app code to use statement such as `from mypythonlib import myfunctions` 
+        "PYTHONPATH": "${env:PYTHONPATH};${workspaceFolder}"
+    },
 }

@@ -44,7 +44,7 @@
             "name": "Rebuild generated files",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/mkv4cafr/generate_medias.py",
+            "program": "${workspaceFolder}/tools/generate_medias/generate_medias.py",
             "console": "integratedTerminal",
             "args": [],
             "cwd": "${workspaceFolder}",
