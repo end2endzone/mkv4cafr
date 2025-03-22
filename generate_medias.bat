@@ -3,5 +3,5 @@ set PATH=%PATH%;C:\Program Files\MKVToolNix
 
 cd /d "%~dp0"
 
-python generate.py
+python src/generate_medias.py
 pause

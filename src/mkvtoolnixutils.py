@@ -1,6 +1,6 @@
-import findutils
 import getpass
 import os
+import findutils
 
 def get_mkvtoolnix_install_directory_hints():
     hints = []
