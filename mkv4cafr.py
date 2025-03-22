@@ -14,10 +14,10 @@ import mkvmergeutils
 import jsonutils
 
 # Constants
-# N/A
+MAX_SUBTITLES_PER_HOUR_RATIO = 75.0
 
 def print_header():
-    print("mkv4cafr v0.1.0")
+    print("mkv4cafr v0.2.0")
 
 
 # Parse output directory
@@ -166,7 +166,7 @@ def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: di
 
         english_audio_tracks_indice  = mkvmergeutils.filter_tracks_indice_by_language(tracks, audio_tracks_indice, ['eng'])
         if ((total_audio_tracks_count - french_audio_tracks_count) == 1 and len(english_audio_tracks_indice) == 1 ):
-            # Yes, the english track must certainy be VO
+            # Only VF2 containers should be have their English audio track automatically flagged as 'VO'.
             track_index = english_audio_tracks_indice[0]
 
             # Update the track
@@ -229,7 +229,7 @@ def update_subtitle_tracks_set_forced_flag_if_required(json_obj: dict):
     if (tracks is None):
         return
 
-    # Set forced flag to subtitles that contains less than 150 entries or the string "force" in their name
+    # Set forced flag to subtitles that contains less than 75 entries per hour or the string "force" in their name
     subtitles_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, 'subtitles')
     for track_index in subtitles_tracks_indice:
         track = tracks[track_index]
@@ -237,16 +237,15 @@ def update_subtitle_tracks_set_forced_flag_if_required(json_obj: dict):
             continue
         properties = track['properties']
 
-        # Set forced flag for subtitles that have less than 150 entries
-        # (validate with property 'tag_number_of_frames' first)
-        tag_number_of_frames_str = properties['tag_number_of_frames'] if 'tag_number_of_frames' in properties else 0
-        tag_number_of_frames = int(tag_number_of_frames_str)
-        if (tag_number_of_frames > 0 and tag_number_of_frames <= 150):
-            json_obj["tracks"][track_index]["properties"]["forced_track"] = True
-        # (then validate with property 'num_index_entries')
-        num_index_entries = properties['num_index_entries'] if 'num_index_entries' in properties else 0
-        if (num_index_entries > 0 and num_index_entries <= 150):
-            json_obj["tracks"][track_index]["properties"]["forced_track"] = True
+        # Set forced flag for subtitles that have less than 75 entries per hour
+        track_subtitles_count = mkvmergeutils.get_track_subtitles_count(track)
+        if (track_subtitles_count > 0):
+            container_duration_ms = mkvmergeutils.get_container_duration_ms(json_obj)
+            if (container_duration_ms > 0):
+                container_duration_hours = container_duration_ms/3600000.0
+                subtitles_per_hour = track_subtitles_count / container_duration_hours
+                if (subtitles_per_hour < MAX_SUBTITLES_PER_HOUR_RATIO):
+                    json_obj["tracks"][track_index]["properties"]["forced_track"] = True
 
         # Check if word "forced" is found, it is propably a forced subtible track
         track_name = properties['track_name'] if 'track_name' in properties else ""
@@ -297,6 +296,38 @@ def update_properties_as_per_preferences(json_obj: dict, input_file_path: str):
     update_subtitle_tracks_default_track_from_forced_flag(json_copy)
     
     return json_copy
+
+
+def validate_inconsistencies(json_obj, input_abspath):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
+    if (tracks is None):
+        return
+    
+    audio_tracks_indice = mkvmergeutils.get_tracks_indice_by_type(tracks, "audio")
+    
+    # Validate a maximum of a single audio track with flag VO
+    vo_audio_tracks_indice = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VO'])
+    vo_audio_tracks_count = len(vo_audio_tracks_indice)
+    if (vo_audio_tracks_count > 1):
+        print("Error, multiple audio tracks were identified with the VO flag: " + ",".join(str(x) for x in vo_audio_tracks_indice) + ".")
+        return False
+    
+    # Validate that a VFI audio track do has language set to FR and language_ietf is empty.
+    vfi_audio_tracks_indice = mkvmergeutils.filter_tracks_indice_by_flag(tracks, audio_tracks_indice, ['VFI'])
+    for track_index in vfi_audio_tracks_indice:
+        track_language = mkvmergeutils.get_track_property_value(json_obj, track_index, 'language')
+        if (not track_language == "fre"):
+            print("Error, track index " + str(track_index) + " is flagged as VFI but language is set to '" + track_language + "'. Expected: 'fre'.")
+            return False
+
+        track_language_ietf = mkvmergeutils.get_track_property_value(json_obj, track_index, 'language_ietf')
+        if (not track_language_ietf is None):
+            track_language_ietf = str(track_language_ietf)
+            if (track_language_ietf.find('-') != -1):
+                print("Error, track index " + str(track_index) + " is flagged as VFI but language_ietf is set to '" + track_language_ietf + "' which is region specific.")
+                return False
+
+    return True
 
 
 def compute_json_differences(json_left: dict, json_right: dict):
@@ -562,7 +593,10 @@ def main():
     # or we run in input file mode
     elif (fileutils.get_str_path_or_none(args.input_file) != None):
         exit_code = process_file(fileutils.get_str_path_or_empty_str(args.input_file), str(args.output_dir), args.edit_in_place)
-        print("done.")
+        if (exit_code != 0):
+            print("Failed processing file '" + fileutils.get_str_path_or_empty_str(args.input_file) + "'!")
+        else:
+            print("done.")
         return exit_code
     else:
         print("Nothing to do!")
@@ -602,6 +636,13 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
 
     # Update
     json_copy = update_properties_as_per_preferences(json_obj, input_abspath)
+
+    # Validate inconsistencies
+    has_inconsistencies = validate_inconsistencies(json_obj, input_abspath)
+    if (has_inconsistencies == False or has_inconsistencies is None):
+        print("Inconsistencies were found during metadata validation for file '" + input_abspath + "'.")
+        print("Aborting update.")
+        return 1
 
     # DEBUG:
     #json_copy['tracks'][1] = json_obj['tracks'][1]

@@ -183,13 +183,18 @@ def get_track_name_flags_array(track: dict):
     track_name = str(properties['track_name']).upper() if 'track_name' in properties else ""
     track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else ""
 
-    has_vff = test_flag_in_string(track_name, "VFF") or (track_language_ietf == "fr-FR") or test_flag_in_string(track_name, "FRANCE")
+    has_vff = test_flag_in_string(track_name, "VFF") or test_flag_in_string(track_name, "VOF") or (track_language_ietf == "fr-FR") or test_flag_in_string(track_name, "FRANCE")
     has_vfq = test_flag_in_string(track_name, "VFQ") or (track_language_ietf == "fr-CA") or test_flag_in_string(track_name, "CA") or test_flag_in_string(track_name, "CANADIAN") or test_flag_in_string(track_name, "CANADIEN")
     has_vfi = test_flag_in_string(track_name, "VFI")
-    has_vo  = test_flag_in_string(track_name, "VO") or (track_language_ietf == "en-US") # assume US tracks are original tracks
+    has_vo  = test_flag_in_string(track_name, "VO")
     has_ad  = test_flag_in_string(track_name, "AD")
     has_dvd = test_flag_in_string(track_name, "DVD")
     has_sdh = test_flag_in_string(track_name, "SDH")
+
+    # Make corrections if necessary
+    if ( has_ad and has_vo):
+      # AD audio stream cannot be the "Original Version"
+      has_vo = False
 
     flags = list()
     if ( has_vff ):
@@ -216,7 +221,7 @@ def get_track_name_flags_array(track: dict):
 def get_track_name_flags_from_filename(file_path: str):
     if (test_flag_in_string(file_path, "VF2")):
         return "VF2"
-    if (test_flag_in_string(file_path, "VFF") or test_flag_in_string(file_path, "TrueFrench")):
+    if (test_flag_in_string(file_path, "VFF") or test_flag_in_string(file_path, "VOF") or test_flag_in_string(file_path, "TrueFrench")):
         return "VFF"
     if (test_flag_in_string(file_path, "VFQ")):
         return "VFQ"
@@ -246,7 +251,11 @@ def get_track_auto_generated_name(track: dict):
 
     flags = get_track_name_flags(track)
 
-    new_name = language_friendly + " " + codec_friendly + " " + channel_layout_friendly
+    # Build new_name
+    new_name = ""
+    if (language_friendly != "UND"):
+        new_name = language_friendly + " "
+    new_name = new_name + codec_friendly + " " + channel_layout_friendly
     if not flags is None:
       new_name = new_name + " (" + flags + ")"
 
@@ -403,6 +412,29 @@ def get_track_index_from_id(tracks: list, target_id: int):
     return INVALID_TRACK_INDEX
 
 
+def get_track_subtitles_count(track: dict):
+    # Skip tracks that are not subtitles
+    if "type" in track and track['type'] != 'subtitles':
+        return None
+
+    if not "properties" in track:
+        return None
+    properties = track['properties']
+
+    # validate with property 'tag_number_of_frames' first
+    tag_number_of_frames_str = properties['tag_number_of_frames'] if 'tag_number_of_frames' in properties else 0
+    tag_number_of_frames = int(tag_number_of_frames_str)
+    if (not tag_number_of_frames is None):
+        return tag_number_of_frames
+
+    # then validate with property 'num_index_entries'
+    num_index_entries = properties['num_index_entries'] if 'num_index_entries' in properties else 0
+    if (not num_index_entries is None):
+        return num_index_entries
+
+    return None
+
+
 def get_container_properties_title(json_obj: dict):
     if not "container" in json_obj:
         return None
@@ -414,7 +446,20 @@ def get_container_properties_title(json_obj: dict):
 
     title = properties['title'] if "title" in properties else None
     return title
+
+
+def get_container_property(json_obj: dict, property_name: str):
+    if not "container" in json_obj:
+        return None
+    container = json_obj['container']
     
+    if not "properties" in container:
+        return None
+    properties = container['properties']
+
+    value = properties[property_name] if property_name in properties else None
+    return value
+
 
 def get_track_property_value(json_obj: dict, track_index: int, property_name: str):
     if not "tracks" in json_obj:
@@ -523,6 +568,18 @@ def get_track_supported_property_names():
     property_names.append("track_name")
     property_names.append("uid")
     return property_names
+
+
+def get_container_duration_ms(json_obj: dict):
+    container_duration = get_container_property(json_obj, 'duration')
+    if (container_duration is None):
+        return None
+
+    # MKV specification for 'duration' is in nanoseconds
+    container_duration = int(container_duration)
+    container_duration_ms = int(container_duration/(1000*1000))
+
+    return container_duration_ms
 
 
 def get_mkvpropedit_set_argument_for_mkvmerge_property(name: str):
