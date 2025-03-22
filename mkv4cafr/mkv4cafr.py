@@ -7,11 +7,11 @@ import json
 import copy
 import glob
 
-import findutils
-import fileutils
-import mkvtoolnixutils
-import mkvmergeutils
-import jsonutils
+from mkv4cafr import findutils
+from mkv4cafr import fileutils
+from mkv4cafr import mkvtoolnixutils
+from mkv4cafr import mkvmergeutils
+from mkv4cafr import jsonutils
 
 # Constants
 MAX_SUBTITLES_PER_HOUR_RATIO = 75.0
@@ -548,19 +548,10 @@ def main():
         print("Must specify <output directory> if not editing in-place.")
         return 1
 
-    # Search for mkvpropedit on the system
-    mkvtoolnix_install_path = mkvtoolnixutils.find_mkvtoolnix_dir_in_path()
-    if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
-        print("MKVToolNix not found in PATH.")
-
-        print("Searching known installation directories...")
-        mkvtoolnix_install_path = mkvtoolnixutils.find_mkvtoolnix_dir_on_system()
-        if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
-            print("MKVToolNix not found on system.\n")
-            sys.exit(1)
-
-        # Found, but not in PATH
-        os.environ['PATH'] = mkvtoolnix_install_path + os.pathsep + os.environ['PATH']
+    # Search for mkvpropedit on the system    
+    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
+    if (mkvtoolnix_install_path is None):
+        sys.exit(1)
     mkvmerge_exec_path    = os.path.join(mkvtoolnix_install_path, "mkvmerge"    + findutils.get_executable_file_extension_name())
     mkvpropedit_exec_path = os.path.join(mkvtoolnix_install_path, "mkvpropedit" + findutils.get_executable_file_extension_name())
     print("Found mkvpropedit: " + mkvpropedit_exec_path)

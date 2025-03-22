@@ -1,6 +1,6 @@
 import pytest
 import os
-from src import findutils
+from mkv4cafr import findutils
 
 def test_find_exec_in_path():
     # test not found

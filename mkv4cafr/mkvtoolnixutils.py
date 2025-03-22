@@ -1,6 +1,6 @@
 import getpass
 import os
-import findutils
+from mkv4cafr import findutils
 
 def get_mkvtoolnix_install_directory_hints():
     hints = []
@@ -44,3 +44,19 @@ def find_mkvtoolnix_dir_on_system():
         return dir_path
         
     return None
+
+
+def setup_mkvtoolnix():
+    mkvtoolnix_install_path = find_mkvtoolnix_dir_in_path()
+    if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
+        print("MKVToolNix not found in PATH.")
+
+        print("Searching known installation directories...")
+        mkvtoolnix_install_path = find_mkvtoolnix_dir_on_system()
+        if mkvtoolnix_install_path is None or not os.path.isdir(mkvtoolnix_install_path):
+            print("MKVToolNix not found on system.\n")
+            return None
+
+        # Found, but not in PATH
+        os.environ['PATH'] = mkvtoolnix_install_path + os.pathsep + os.environ['PATH']
+    return mkvtoolnix_install_path
