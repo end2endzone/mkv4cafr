@@ -2,9 +2,9 @@ import os
 import sys
 import subprocess
 
-from mkv4cafr import findutils
-from mkv4cafr import ffmpegutils
-from mkv4cafr import mkvtoolnixutils
+from mkv4cafrlib import findutils
+from mkv4cafrlib import ffmpegutils
+from mkv4cafrlib import mkvtoolnixutils
 
 # Constants
 # N/A

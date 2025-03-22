@@ -1,6 +1,6 @@
 import getpass
 import os
-from mkv4cafr import findutils
+from mkv4cafrlib import findutils
 
 def get_mkvtoolnix_install_directory_hints():
     hints = []
