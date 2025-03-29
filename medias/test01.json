@@ -45,7 +45,7 @@
     "--track-name",
     "0:this is an uncompressed 7.1 audio channel audio track in original language (VO)",
     "(",
-    "medias/audio_8ch_1152kbps.flac",
+    "medias/audio_8ch.flac",
     ")",
 
     "--language",
