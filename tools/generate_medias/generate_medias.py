@@ -212,6 +212,7 @@ def generate_mkv_files():
         commands.append("mkvmerge @medias/test02.json")
         commands.append("mkvmerge @medias/test_get_track_name_flags.json")
         commands.append("mkvmerge @medias/test_get_track_auto_generated_name.json")
+        commands.append("mkvmerge @medias/test_get_track_id_from_index.json")
         for command in commands:
             command = str(command)
             while(command.find("  ") != -1):
@@ -257,12 +258,12 @@ def main():
     generate_subtitle_timecodes_detailed(framerate, video_length_seconds, subtitles_count)
 
     # Generate video files
-    #generate_life_h264()
-    #generate_life_h265()
-    #generate_testsrc2()
+    generate_life_h264()
+    generate_life_h265()
+    generate_testsrc2()
 
     # Generate audio files
-    #generate_audio_tracks()
+    generate_audio_tracks()
 
     # Generate mkv files
     generate_mkv_files()
