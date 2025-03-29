@@ -2,6 +2,27 @@ import getpass
 import os
 from mkv4cafrlib import findutils
 
+TRACK_TYPE_NATURAL_SORT_ORDER = ["video", "audio", "subtitles"]
+
+
+def compare_tracks(a: str, b: str):
+    a_index = TRACK_TYPE_NATURAL_SORT_ORDER.index(a['type']) if 'type' in a else 999999
+    b_index = TRACK_TYPE_NATURAL_SORT_ORDER.index(b['type']) if 'type' in b else 999999
+    if a_index > b_index:
+        return 1
+    elif a_index == b_index:
+        a_id = a['id'] if 'id' in a else 999999
+        b_id = b['id'] if 'id' in b else 999999
+        if a_id > b_id:
+            return 1
+        elif a_id == b_id:
+            return 0
+        else:
+            return -1
+    else:
+        return -1
+
+
 def get_mkvtoolnix_install_directory_hints():
     hints = []
 

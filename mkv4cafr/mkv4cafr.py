@@ -147,6 +147,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
         json_obj = json.loads(media_json_str)
     except Exception as e:
         print(str(e))
+        return 1
 
     # Update
     json_copy = mkv4cafrlib.update_properties_as_per_preferences(json_obj, input_abspath)
