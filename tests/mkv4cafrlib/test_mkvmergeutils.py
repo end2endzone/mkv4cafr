@@ -10,47 +10,98 @@ from random import shuffle
 from functools import cmp_to_key
 
 
-def test_get_media_file_info():
+# Globals
+mkvmerge_path = None
+medias_path = None
+testfiles_path = None
+test01_file_path = None
+test02_file_path = None
+
+
+# https://stackoverflow.com/questions/72085517/getting-pytest-to-run-setup-and-teardown-for-every-test-coming-from-nose
+# https://docs.pytest.org/en/6.2.x/xunit_setup.html
+def setup_function():
+    """ setup any state tied to the execution of the given function. Invoked for every test function in the module."""
+
     # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
-    assert mkvmerge_path != None
+    mkvtoolnix_install_path_tmp = mkvtoolnixutils.setup_mkvtoolnix()
+    assert mkvtoolnix_install_path_tmp != None
+    mkvmerge_path_tmp = findutils.find_exec_in_path("mkvmerge")
+    assert mkvmerge_path_tmp != None
 
     # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert medias_path != None
-    assert testfiles_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
+    medias_path_tmp = testutils.get_medias_dir_path()
+    testfiles_path_tmp = testutils.get_test_files_dir_path()
+    assert medias_path_tmp != None
+    assert testfiles_path_tmp != None
+
+    # Assert some know medias files
+    test01_file_path_tmp = os.path.join(medias_path_tmp, "test01.mkv")
+    test02_file_path_tmp = os.path.join(medias_path_tmp, "test02.mkv")
+    assert os.path.isfile(test01_file_path_tmp)
+    assert os.path.isfile(test02_file_path_tmp)
+
+    # Setup global variables
+    global mkvmerge_path
+    global medias_path
+    global testfiles_path
+    global test01_file_path
+    global test02_file_path
+    mkvmerge_path   = mkvmerge_path_tmp
+    medias_path     = medias_path_tmp
+    testfiles_path  = testfiles_path_tmp
+    test01_file_path = test01_file_path_tmp
+    test02_file_path = test02_file_path_tmp
+
+
+def teardown_function():
+    """ teardown any state that was previously setup with a setup_function call."""
+    pass
+
+
+def setup_module(module):
+    """ setup any state specific to the execution of the given module."""
+    pass
+
+
+def teardown_module(module):
+    """ teardown any state that was previously setup with a setup_module method."""
+    pass
+
+
+def get_media_file_path(file_name) -> str:
+    file_path = os.path.join(medias_path, file_name)
     assert os.path.isfile(file_path)
+    return file_path
+
+
+def get_test_file_path(file_name) -> str:
+    file_path = os.path.join(testfiles_path, file_name)
+    assert os.path.isfile(file_path)
+    return file_path
+
+
+def test_get_media_file_info():
+    # Check setup dependencies
+    assert mkvmerge_path != None
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
 
 
 def test_get_tracks_indice_by_type():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert medias_path != None
-    assert testfiles_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -71,24 +122,14 @@ def test_get_tracks_indice_by_type():
 
 
 def test_filter_tracks_indice_by_language():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert medias_path != None
-    assert testfiles_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -107,24 +148,14 @@ def test_filter_tracks_indice_by_language():
 
 
 def test_filter_tracks_indice_by_flag():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert medias_path != None
-    assert testfiles_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -198,18 +229,11 @@ def test_test_flag_in_string():
 
 
 def test_get_track_name_flags():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
 
     # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert medias_path != None
-    assert testfiles_path != None
-    file_path = os.path.join(medias_path,"test_get_track_name_flags.mkv")
+    file_path = get_media_file_path("test_get_track_name_flags.mkv")
     assert os.path.isfile(file_path)
 
     # arrange
@@ -258,18 +282,11 @@ def test_get_track_name_flags():
 
 
 def test_get_track_auto_generated_name():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
 
     # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert medias_path != None
-    assert testfiles_path != None
-    file_path = os.path.join(medias_path,"test_get_track_auto_generated_name.mkv")
+    file_path = get_media_file_path("test_get_track_auto_generated_name.mkv")
     assert os.path.isfile(file_path)
 
     # arrange
@@ -314,17 +331,12 @@ def test_get_track_auto_generated_name():
 
 
 def test_get_first_default_track_id_for_type():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
 
     # Check file dependencies
-    testfiles_path = testutils.get_test_files_dir_path()
-    assert testfiles_path != None
-    file_path1 = os.path.join(testfiles_path,"test_get_first_default_track_id_for_type_id025.json")
-    file_path2 = os.path.join(testfiles_path,"test_get_first_default_track_id_for_type_none.json")
+    file_path1 = get_test_file_path("test_get_first_default_track_id_for_type_id025.json")
+    file_path2 = get_test_file_path("test_get_first_default_track_id_for_type_none.json")
     assert os.path.isfile(file_path1)
     assert os.path.isfile(file_path2)
 
@@ -370,19 +382,16 @@ def test_get_first_default_track_id_for_type():
 
 
 def test_get_best_track_id_from_indice():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
 
     # Check file dependencies
     testfiles_path = testutils.get_test_files_dir_path()
     assert testfiles_path != None
-    file_path1 = os.path.join(testfiles_path,"test_get_best_track_id_from_indice_vfq_has_priority_over_default_and_vff_and_fr.json")
-    file_path2 = os.path.join(testfiles_path,"test_get_best_track_id_from_indice_vff_has_priority_over_default_and_fr.json")
-    file_path3 = os.path.join(testfiles_path,"test_get_best_track_id_from_indice_french_has_priority_over_default_and_english.json")
-    file_path4 = os.path.join(testfiles_path,"test_get_best_track_id_from_indice_default_if_nothing_is_best.json")
+    file_path1 = get_test_file_path("test_get_best_track_id_from_indice_vfq_has_priority_over_default_and_vff_and_fr.json")
+    file_path2 = get_test_file_path("test_get_best_track_id_from_indice_vff_has_priority_over_default_and_fr.json")
+    file_path3 = get_test_file_path("test_get_best_track_id_from_indice_french_has_priority_over_default_and_english.json")
+    file_path4 = get_test_file_path("test_get_best_track_id_from_indice_default_if_nothing_is_best.json")
     assert os.path.isfile(file_path1)
     assert os.path.isfile(file_path2)
     assert os.path.isfile(file_path3)
@@ -462,19 +471,16 @@ def test_get_best_track_id_from_indice():
 
 
 def test_get_best_forced_track_id_for_type():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
 
     # Check file dependencies
     testfiles_path = testutils.get_test_files_dir_path()
     assert testfiles_path != None
-    file_path1 = os.path.join(testfiles_path,"test_get_best_forced_track_id_for_type_vfq_has_priority_over_default_and_vff_and_fr.json")
-    file_path2 = os.path.join(testfiles_path,"test_get_best_forced_track_id_for_type_vff_has_priority_over_default_and_fr.json")
-    file_path3 = os.path.join(testfiles_path,"test_get_best_forced_track_id_for_type_french_has_priority_over_default_and_english.json")
-    file_path4 = os.path.join(testfiles_path,"test_get_best_forced_track_id_for_type_invalid_if_nothing_is_forced.json")
+    file_path1 = get_test_file_path("test_get_best_forced_track_id_for_type_vfq_has_priority_over_default_and_vff_and_fr.json")
+    file_path2 = get_test_file_path("test_get_best_forced_track_id_for_type_vff_has_priority_over_default_and_fr.json")
+    file_path3 = get_test_file_path("test_get_best_forced_track_id_for_type_french_has_priority_over_default_and_english.json")
+    file_path4 = get_test_file_path("test_get_best_forced_track_id_for_type_invalid_if_nothing_is_forced.json")
     assert os.path.isfile(file_path1)
     assert os.path.isfile(file_path2)
     assert os.path.isfile(file_path3)
@@ -554,22 +560,14 @@ def test_get_best_forced_track_id_for_type():
 
 
 def test_get_track_id_from_index():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test02.mkv")
-    assert os.path.isfile(file_path)
+    assert test02_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -590,22 +588,14 @@ def test_get_track_id_from_index():
 
 
 def test_get_track_index_from_id():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test02.mkv")
-    assert os.path.isfile(file_path)
+    assert test02_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -626,22 +616,14 @@ def test_get_track_index_from_id():
 
 
 def test_get_track_subtitles_count():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -672,24 +654,15 @@ def test_get_track_subtitles_count():
 
 
 def test_get_container_properties_title():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path1 = os.path.join(medias_path,"test01.mkv")
-    file_path2 = os.path.join(medias_path,"test02.mkv")
-    assert os.path.isfile(file_path1)
-    assert os.path.isfile(file_path2)
+    assert test01_file_path != None
+    assert test02_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path1)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -705,7 +678,7 @@ def test_get_container_properties_title():
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path2)
+    json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -718,24 +691,15 @@ def test_get_container_properties_title():
 
 
 def test_get_container_property():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path1 = os.path.join(medias_path,"test01.mkv")
-    file_path2 = os.path.join(medias_path,"test02.mkv")
-    assert os.path.isfile(file_path1)
-    assert os.path.isfile(file_path2)
+    assert test01_file_path != None
+    assert test02_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path1)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -751,7 +715,7 @@ def test_get_container_property():
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path2)
+    json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -764,22 +728,14 @@ def test_get_container_property():
 
 
 def test_get_track_property_value():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -798,22 +754,14 @@ def test_get_track_property_value():
 
 
 def test_set_track_property_value():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -831,22 +779,14 @@ def test_set_track_property_value():
 
 
 def test_set_track_flag():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
@@ -869,22 +809,14 @@ def test_set_track_flag():
 
 
 def test_get_container_duration_ms():
-    # Check program dependencies
-    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
-    assert mkvtoolnix_install_path != None
-    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    # Check setup dependencies
     assert mkvmerge_path != None
-
-    # Check file dependencies
-    medias_path = testutils.get_medias_dir_path()
-    assert medias_path != None
-    file_path = os.path.join(medias_path,"test01.mkv")
-    assert os.path.isfile(file_path)
+    assert test01_file_path != None
 
     # arrange
 
     # Load media info into a json dict
-    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
