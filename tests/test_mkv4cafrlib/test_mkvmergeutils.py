@@ -867,3 +867,31 @@ def test_set_track_flag():
     assert name5 == 'this is a ac3 canadian french track (VFF)'
     assert name6 == 'this might be foreign languages subtitles (VFI)'
 
+
+def test_get_container_duration_ms():
+    # Check program dependencies
+    mkvtoolnix_install_path = mkvtoolnixutils.setup_mkvtoolnix()
+    assert mkvtoolnix_install_path != None
+    mkvmerge_path = findutils.find_exec_in_path("mkvmerge")
+    assert mkvmerge_path != None
+
+    # Check file dependencies
+    medias_path = testutils.get_medias_dir_path()
+    assert medias_path != None
+    file_path = os.path.join(medias_path,"test01.mkv")
+    assert os.path.isfile(file_path)
+
+    # arrange
+
+    # Load media info into a json dict
+    json_obj = mkvmergeutils.get_media_file_info(file_path)
+    assert json_obj != None
+    assert "tracks" in json_obj
+    tracks = json_obj['tracks']
+
+    # act
+    actual_length_ms = mkvmergeutils.get_container_duration_ms(json_obj)
+    expected_length_ms = 1*60*1000 # 1 min
+
+    # assert
+    assert abs(expected_length_ms - actual_length_ms) < 50
