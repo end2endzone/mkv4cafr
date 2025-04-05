@@ -11,7 +11,7 @@ def get_media_file_info(file_path: str):
     try:
         media_json_bytes = subprocess.check_output(["mkvmerge", "-J", file_path])                       
     except Exception as e:
-        return None
+        raise e
     media_json_str = media_json_bytes.decode("utf-8")
 
     # Parse media json
