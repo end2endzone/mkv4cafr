@@ -2,9 +2,9 @@ import os
 import sys
 import subprocess
 
-import findutils
-import ffmpegutils
-import mkvtoolnixutils
+from mkv4cafrlib import findutils
+from mkv4cafrlib import ffmpegutils
+from mkv4cafrlib import mkvtoolnixutils
 
 # Constants
 # N/A
@@ -177,14 +177,19 @@ def get_anullsrc_filter(channel_layout: str, sample_rate: int):
 def generate_audio_tracks():
     try:
         commands = list()
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=44100               -vn -c:a pcm_s16le       medias/audio_silence_44khz.wav")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a mp3 -b:a 128k   medias/audio_2ch_128kbps.mp3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a ac3 -b:a 192k   medias/audio_2ch_192kbps.ac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000               -vn -c:a aac -b:a 192k   medias/audio_2ch_192kbps.aac")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1(side):sample_rate=44100 -strict -2 -vn -c:a dca -b:a 1510k  medias/audio_6ch_1510kbps.dts")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a ac3 -b:a 640k   medias/audio_6ch_640kbps.ac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                  -vn -c:a eac3 -b:a 1152k medias/audio_6ch_1152kbps.eac3")
-        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i sine=frequency=100:duration=60:sample_rate=48000 -ac 8         -vn -c:a flac            medias/audio_8ch_1152kbps.flac")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=44100                      -vn -c:a pcm_s16le            medias/audio_silence_44khz.wav")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=mono:sample_rate=44100                        -vn -c:a ac3 -b:a  96k        medias/audio_1ch_192kbps.ac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000                      -vn -c:a mp3 -b:a 128k        medias/audio_2ch_128kbps.mp3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000                      -vn -c:a ac3 -b:a 192k        medias/audio_2ch_192kbps.ac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=48000                      -vn -c:a aac -b:a 192k        medias/audio_2ch_192kbps.aac")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1(side):sample_rate=44100 -strict -2        -vn -c:a dca -b:a 1510k       medias/audio_6ch_1510kbps.dts")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                         -vn -c:a ac3 -b:a 640k        medias/audio_6ch_640kbps.ac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                         -vn -c:a eac3 -b:a 1152k      medias/audio_6ch_1152kbps.eac3")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                         -vn -c:a libopus -b:a 1536k   medias/audio_6ch_1536kbps.opus")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i sine=frequency=100:duration=60:sample_rate=96000 -ac 6 -strict -2     -vn -c:a truehd               medias/audio_6ch_96kHz.thd")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=192000 -strict -2             -vn -c:a truehd               medias/audio_6ch_192kHz.thd")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                         -vn -c:a libvorbis -b:a 1440k medias/audio_6ch_1440kbps.ogg")
+        commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i sine=frequency=100:duration=60:sample_rate=48000 -ac 8                -vn -c:a flac                 medias/audio_8ch.flac")
 
         for command in commands:
             command = str(command)
@@ -204,6 +209,10 @@ def generate_mkv_files():
     try:
         commands = list()
         commands.append("mkvmerge @medias/test01.json")
+        commands.append("mkvmerge @medias/test02.json")
+        commands.append("mkvmerge @medias/test_get_track_name_flags.json")
+        commands.append("mkvmerge @medias/test_get_track_auto_generated_name.json")
+        commands.append("mkvmerge @medias/test_get_track_id_from_index.json")
         for command in commands:
             command = str(command)
             while(command.find("  ") != -1):

@@ -3,6 +3,12 @@ import io
 import time
 import shutil
 import argparse
+import sys
+
+# https://stackoverflow.com/questions/56762491/python-equivalent-to-c-line
+def LINE():
+    return sys._getframe(1).f_lineno
+
 
 def get_copy_file_to_directory_target(input_path: str, output_dir: str):
     input_dir, input_file_name = os.path.split(input_path)
@@ -42,7 +48,11 @@ def print_progress_bar(actual: int, total: int):
     
     percent = int(actual/total*100.0)
     
-    MAX_BAR_LENGTH = os.get_terminal_size().columns - 1 # -1 to leave space for the cursor position 1 character after the text
+    # https://stackoverflow.com/questions/61836508/getting-oserror-winerror-6-the-handle-is-invalid-while-working-on-os-module
+    # Do not use `os.get_terminal_size().columns` to get terminal size.
+    # The function may raise the following exception:
+    # `[WinError 6] The handle is invalid` when running on Windows.
+    MAX_BAR_LENGTH = shutil.get_terminal_size().columns - 1 # -1 to leave space for the cursor position 1 character after the text
     MINIMUM_BAR_LENGTH = len("- [] 100% ")
     INDENT = 1
     progress_width = MAX_BAR_LENGTH - MINIMUM_BAR_LENGTH - INDENT
@@ -83,7 +93,11 @@ def copy_file_with_progress(input_path: str, output_path: str):
         print("") # new line. go 1 line below the progress bar
         print(err)
         return False
-    
+    except Exception as e:
+        err_desc = str(e)
+        print(err_desc)
+        return False
+        
     # Erase copying bar
     print("\r" + ' '*bar_lenght + "\r", end="", flush=True)
 

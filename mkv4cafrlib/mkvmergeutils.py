@@ -6,6 +6,33 @@ INVALID_TRACK_ID = -1
 INVALID_TRACK_INDEX = -1
 
 
+def get_media_file_info(file_path: str):
+    media_json_bytes = None
+    try:
+        media_json_bytes = subprocess.check_output(["mkvmerge", "-J", file_path])                       
+    except Exception as e:
+        raise e
+    media_json_str = media_json_bytes.decode("utf-8")
+
+    # Parse media json
+    try:
+        json_obj = json.loads(media_json_str)
+    except Exception as e:
+        return None
+
+    return json_obj
+
+
+def load_media_file_info(file_path: str):
+    json_obj = None
+    try:
+        with open(file_path, 'rb') as file:
+            json_obj = json.load(file)                
+    except Exception as e:
+        return None
+    return json_obj
+
+
 def get_tracks_indice_by_type(input_tracks: list, type: str):
     types = list()
     types.append(type)
@@ -124,6 +151,8 @@ def get_audio_channel_layout_friendly_name(num_channels: int):
         return "2.0"
     if num_channels == 3:
         return "2.1"
+    if num_channels == 5:
+        return "4.1"
     elif num_channels == 6:
         return "5.1"
     elif num_channels == 8:
@@ -146,6 +175,7 @@ def get_first_video_track_codec_friendly_name(tracks: list):
 
 def test_flag_in_string(value: str, flag: str):
     value_upper = value.upper()
+    flag = flag.upper()
 
     # define previous accepted characters
     valid_previous_characters = ['\0', ' ', '.', ',', '-', '(', '[']
@@ -183,8 +213,17 @@ def get_track_name_flags_array(track: dict):
     track_name = str(properties['track_name']).upper() if 'track_name' in properties else ""
     track_language_ietf = properties['language_ietf'] if 'language_ietf' in properties else ""
 
-    has_vff = test_flag_in_string(track_name, "VFF") or test_flag_in_string(track_name, "VOF") or (track_language_ietf == "fr-FR") or test_flag_in_string(track_name, "FRANCE")
-    has_vfq = test_flag_in_string(track_name, "VFQ") or (track_language_ietf == "fr-CA") or test_flag_in_string(track_name, "CA") or test_flag_in_string(track_name, "CANADIAN") or test_flag_in_string(track_name, "CANADIEN")
+    has_vff = ( test_flag_in_string(track_name, "VFF") or
+                test_flag_in_string(track_name, "VOF") or
+                (track_language_ietf == "fr-FR") or
+                test_flag_in_string(track_name, "FRANCE") or
+                test_flag_in_string(track_name, "TRUEFRENCH") )
+    has_vfq = ( test_flag_in_string(track_name, "VFQ") or
+                (track_language_ietf == "fr-CA") or
+                test_flag_in_string(track_name, "CA") or
+                test_flag_in_string(track_name, "CANADA") or
+                test_flag_in_string(track_name, "CANADIAN") or
+                test_flag_in_string(track_name, "CANADIEN") )
     has_vfi = test_flag_in_string(track_name, "VFI")
     has_vo  = test_flag_in_string(track_name, "VO")
     has_ad  = test_flag_in_string(track_name, "AD")
@@ -266,22 +305,11 @@ def get_first_default_track_id_for_type(tracks: list, type: str):
     # Filter for tracks of the given type
     try:
         matching_tracks_indice = get_tracks_indice_by_type(tracks, type)
-        for track_index in matching_tracks_indice:
-            # Get track
-            track = tracks[track_index]
-            if not "properties" in track:
-                continue
-            properties = track['properties']
-
-            # Check track properties
-            is_default = properties['default_track'] if 'default_track' in properties else False
-            track_id = track['id'] if 'id' in track else INVALID_TRACK_ID
-            if is_default:
-                return track_id
     except Exception as e: pass
-    
-    # No track with "defaut" flag set
-    return INVALID_TRACK_ID
+
+    # Find the best
+    track_id = get_first_default_track_id_for_indice(tracks, matching_tracks_indice)
+    return track_id
 
 
 def get_first_default_track_id_for_indice(tracks: list, tracks_indice: list):
@@ -520,14 +548,22 @@ def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
     properties = track['properties']
         
     # Force flag in track_name, if not present
-    flags_track_name = get_track_name_flags(track)
-    if flags_track_name is None:
-        # The track does not already have a flag indicator
-        new_track_name = get_track_property_value(json_obj, track_index, "track_name")
+    existing_flags = get_track_name_flags(track)
+    if existing_flags == None or existing_flags.find(flag_value) == -1:
+        # This flag is not already set in the track name
+        # It might already be set through language properties, but the flag value is missing in the track name
+        new_track_name = str(get_track_property_value(json_obj, track_index, "track_name"))
         if (new_track_name is None):
-            new_track_name = ""
-        new_track_name += " (" + flag_value + ")"
-        set_track_property_value(json_obj, track_index, 'track_name', new_track_name)
+            new_track_name = "(" + flag_value + ")"
+        else:
+            closing_parenthesis_pos = new_track_name.find(')')
+            if closing_parenthesis_pos == -1:
+                # there is not () within the track name
+                new_track_name += " (" + flag_value + ")"
+            else:
+                # we need to insert the flag within the parenthesis
+                new_track_name = new_track_name[:closing_parenthesis_pos] + ',' + flag_value + new_track_name[closing_parenthesis_pos:]
+        set_track_property_value(json_obj, track_index, 'track_name', new_track_name)        
 
     # Validate we did not messed up
     if (flag_value in ["VFQ", "VFF", "VFI"]):
@@ -554,6 +590,8 @@ def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
             # VF2
             print("Unknown track flag '" + flag_value + "' used in function 'set_track_flag()'.")
             pass
+
+    return True
 
 
 def get_track_supported_property_names():
@@ -602,3 +640,4 @@ def get_mkvpropedit_set_argument_for_mkvmerge_property(name: str):
         # If an exact match is not confirmed, this last case will be used if provided
         case _:
             return None
+
