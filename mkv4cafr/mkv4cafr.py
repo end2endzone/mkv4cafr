@@ -37,7 +37,7 @@ def directory_must_exist_if_specified(raw_path):
     return os.path.abspath(raw_path)
 
 
-def main():
+def main() -> int:
     print_header()
 
     # Parse command line arguments
@@ -125,7 +125,7 @@ def indent_string(value: str, indent: int):
     return output
 
 
-def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool):
+def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool) -> int:
 
     # Validate if file exists
     input_abspath = os.path.abspath(input_file_path)
@@ -204,6 +204,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
         if (not success):
             print("Failed to copy file '" + target_file + "' to directory.")
             return 1
+        print("Copy completed.")
     input_abspath = "" # Make sure the rest of the code do not use the input file as reference
 
     # Change the target file to be modified
@@ -228,4 +229,5 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    sys.exit(exit_code)
