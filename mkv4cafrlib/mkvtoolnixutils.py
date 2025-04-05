@@ -1,6 +1,7 @@
 import getpass
 import os
 from mkv4cafrlib import findutils
+from functools import cmp_to_key
 
 TRACK_TYPE_NATURAL_SORT_ORDER = ["video", "audio", "subtitles"]
 
@@ -21,6 +22,20 @@ def compare_tracks(a: str, b: str):
             return -1
     else:
         return -1
+
+
+def sort_tracks(json_obj: dict):
+    tracks = json_obj['tracks'] if 'tracks' in json_obj else None
+    if (tracks is None):
+        return
+
+    # sort tracks as per MKVToolNix GUI order.
+    # without this sort, mkvmerge will output tracks in ID order
+    # which makes 'index' and 'id' always he same (index == id).
+    comparator_tracks_py3 = cmp_to_key(compare_tracks)
+    tracks.sort(key = comparator_tracks_py3)
+
+    json_obj['tracks'] = tracks
 
 
 def get_mkvtoolnix_install_directory_hints():

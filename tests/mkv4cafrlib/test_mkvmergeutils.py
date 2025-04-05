@@ -570,13 +570,11 @@ def test_get_track_id_from_index():
     json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
-    tracks = json_obj['tracks']
 
     # sort tracks as per MKVToolNix GUI order.
-    # without this sort, mkvmerge will output tracks in ID order
-    # which makes 'index' and 'id' always he same (index == id).
-    comparator_tracks_py3 = cmp_to_key(mkvtoolnixutils.compare_tracks)
-    tracks.sort(key = comparator_tracks_py3)
+    mkvtoolnixutils.sort_tracks(json_obj)
+
+    tracks = json_obj['tracks']
 
     # act
     track_id_at_index3 = mkvmergeutils.get_track_id_from_index(tracks, 3)
@@ -598,13 +596,11 @@ def test_get_track_index_from_id():
     json_obj = mkvmergeutils.get_media_file_info(test02_file_path)
     assert json_obj != None
     assert "tracks" in json_obj
-    tracks = json_obj['tracks']
 
     # sort tracks as per MKVToolNix GUI order.
-    # without this sort, mkvmerge will output tracks in ID order
-    # which makes 'index' and 'id' always he same (index == id).
-    comparator_tracks_py3 = cmp_to_key(mkvtoolnixutils.compare_tracks)
-    tracks.sort(key = comparator_tracks_py3)
+    mkvtoolnixutils.sort_tracks(json_obj)
+
+    tracks = json_obj['tracks']
 
     # act
     track_index_for_id3 = mkvmergeutils.get_track_index_from_id(tracks, 3)
