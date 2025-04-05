@@ -59,9 +59,12 @@ def update_set_language_from_track_name_hints(json_obj: dict):
         if (flags.find("VFQ") != -1):
             json_obj['tracks'][track_index]['properties']['language'] = "fre"
             json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-CA"
-        elif (flags.find("VFF") != -1):
+        elif (flags.find("VFF") >= 0 or flags.find("VOF") >= 0):
             json_obj['tracks'][track_index]['properties']['language'] = "fre"
             json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr-FR"
+        elif (flags.find("VFI") != -1):
+            json_obj['tracks'][track_index]['properties']['language'] = "fre"
+            json_obj['tracks'][track_index]['properties']['language_ietf'] = "fr"
 
 
 def update_audio_tracks_language_or_track_name_from_input_file_name(json_obj: dict, input_file_path: str):
