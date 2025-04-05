@@ -153,7 +153,7 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
     json_copy = mkv4cafrlib.update_properties_as_per_preferences(json_obj, input_abspath)
 
     # Validate inconsistencies
-    has_inconsistencies = mkv4cafrlib.validate_inconsistencies(json_obj, input_abspath)
+    has_inconsistencies = mkv4cafrlib.validate_inconsistencies(json_copy, input_abspath)
     if (has_inconsistencies == False or has_inconsistencies is None):
         print("Inconsistencies were found during metadata validation for file '" + input_abspath + "'.")
         print("Aborting update.")
