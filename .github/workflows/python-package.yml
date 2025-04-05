@@ -45,6 +45,9 @@ jobs:
       run: |
         echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
         echo "PYTHONPATH=$GITHUB_WORKSPACE;$PYTHONPATH" >> $GITHUB_ENV
+    - name: List environment variables
+      run: |
+        env
     - name: Generating medias
       run: |
         python tools/generate_medias/generate_medias.py
