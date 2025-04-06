@@ -286,9 +286,9 @@ def main():
     generate_subtitle_timecodes_detailed(framerate, video_length_seconds, subtitles_count)
 
     # Generate video files
-    #generate_life_h264()
-    #generate_life_h265()
-    #generate_testsrc2()
+    generate_life_h264()
+    generate_life_h265()
+    generate_testsrc2()
 
     # Generate audio files
     generate_audio_tracks()
