@@ -10,6 +10,25 @@ from mkv4cafrlib import mkvtoolnixutils
 # N/A
 
 
+def FUNC_NAME() -> str:
+    """
+    :return: name of caller
+    """
+    name = sys._getframe(1).f_code.co_name
+    name += "()"
+    return name
+
+
+def print_step_header(title: str):
+    line = '=========================================================================================='
+    space_count = int((len(line) - len(title)) / 2)
+    spaces = ' '*space_count
+
+    print(line)
+    print( spaces + title )
+    print(line)
+
+
 def format_timecode(time_abs_seconds):
     remaining = time_abs_seconds
     
@@ -56,6 +75,7 @@ def generate_subtitle_timecodes_detailed(framerate: int, video_length_seconds: i
 
 
 def generate_life_h264():
+    print_step_header(FUNC_NAME())
     try:
         filter = ""
         filter = filter + "ratio=0.7:"
@@ -95,6 +115,7 @@ def generate_life_h264():
 
 
 def generate_life_h265():
+    print_step_header(FUNC_NAME())
     try:
         filter = ""
         filter = filter + "ratio=0.7:"
@@ -136,6 +157,7 @@ def generate_life_h265():
 
 
 def generate_testsrc2():
+    print_step_header(FUNC_NAME())
     try:
         filter = ""
         filter = filter + "testsrc2=s=1280x720:rate=24:d=60"
@@ -175,6 +197,7 @@ def get_anullsrc_filter(channel_layout: str, sample_rate: int):
     filter = "anullsrc=channel_layout={channel_layout}}:sample_rate={sample_rate}".format(channel_layout=channel_layout, sample_rate=sample_rate)
     return filter
 def generate_audio_tracks():
+    print_step_header(FUNC_NAME())
     try:
         commands = list()
         commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=stereo:sample_rate=44100                      -vn -c:a pcm_s16le            medias/audio_silence_44khz.wav")
@@ -191,11 +214,13 @@ def generate_audio_tracks():
         commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i anullsrc=channel_layout=5.1:sample_rate=48000                         -vn -c:a libvorbis -b:a 1440k medias/audio_6ch_1440kbps.ogg")
         commands.append("ffmpeg -y -hide_banner -f lavfi -t 60 -i sine=frequency=100:duration=60:sample_rate=48000 -ac 8                -vn -c:a flac                 medias/audio_8ch.flac")
 
+        i = -1
         for command in commands:
-            command = str(command)
+            i += 1
             while(command.find("  ") != -1):
                 command = command.replace("  ", " ")
             command_args = str(command).split(' ')
+            print_step_header(FUNC_NAME() + ", " + str(i+1) + " of " + str(len(commands)))
             subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute ffmpeg command: '", command, "'. Error code: ", procexc.returncode, procexc.output)
@@ -206,6 +231,7 @@ def generate_audio_tracks():
 
 
 def generate_mkv_files():
+    print_step_header(FUNC_NAME())
     try:
         commands = list()
         commands.append("mkvmerge @medias/test01.json")
@@ -213,11 +239,13 @@ def generate_mkv_files():
         commands.append("mkvmerge @medias/test_get_track_name_flags.json")
         commands.append("mkvmerge @medias/test_get_track_auto_generated_name.json")
         commands.append("mkvmerge @medias/test_get_track_id_from_index.json")
+        i = -1
         for command in commands:
-            command = str(command)
+            i += 1
             while(command.find("  ") != -1):
                 command = command.replace("  ", " ")
             command_args = str(command).split(' ')
+            print_step_header(FUNC_NAME() + ", " + str(i+1) + " of " + str(len(commands)))
             subprocess.check_call(command_args)
     except subprocess.CalledProcessError as procexc:                                                                                                   
         print("Failed to execute MKVToolNix command: '", command, "'. Error code: ", procexc.returncode, procexc.output)
@@ -258,9 +286,9 @@ def main():
     generate_subtitle_timecodes_detailed(framerate, video_length_seconds, subtitles_count)
 
     # Generate video files
-    generate_life_h264()
-    generate_life_h265()
-    generate_testsrc2()
+    #generate_life_h264()
+    #generate_life_h265()
+    #generate_testsrc2()
 
     # Generate audio files
     generate_audio_tracks()
