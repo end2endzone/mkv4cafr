@@ -2,18 +2,18 @@
   "--priority",
   "lower",
   "--output",
-  "medias\\test_get_track_name_flags.mkv",
+  "medias/test_get_track_name_flags.mkv",
 
   "--language",
   "0:und",
   "(",
-  "medias\\life-h264.mp4",
+  "medias/life-h264.mp4",
   ")",
 
   "--language",
   "0:und",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -21,7 +21,7 @@
   "--track-name",
   "0:this is a track without any flags.",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -29,7 +29,7 @@
   "--track-name",
   "0:VFF",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -37,13 +37,13 @@
   "--track-name",
   "0:assert VOF is converted to another type",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
   "0:fr-FR",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -51,7 +51,7 @@
   "--track-name",
   "0:FRANCE",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -59,13 +59,13 @@
   "--track-name",
   "0:VFQ",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
   "0:fr-CA",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -73,7 +73,7 @@
   "--track-name",
   "0:CA",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -81,7 +81,7 @@
   "--track-name",
   "0:canada",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -89,7 +89,7 @@
   "--track-name",
   "0:canadien",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -97,7 +97,7 @@
   "--track-name",
   "0:vfi",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -105,7 +105,7 @@
   "--track-name",
   "0:vo",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -113,7 +113,7 @@
   "--track-name",
   "0:ad",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -121,7 +121,7 @@
   "--track-name",
   "0:DVD",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -129,7 +129,7 @@
   "--track-name",
   "0:sdh",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -137,7 +137,7 @@
   "--track-name",
   "0:assert ad have priority over vo",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--title",

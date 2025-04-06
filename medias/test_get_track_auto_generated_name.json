@@ -2,18 +2,18 @@
   "--priority",
   "lower",
   "--output",
-  "medias\\test_get_track_auto_generated_name.mkv",
+  "medias/test_get_track_auto_generated_name.mkv",
 
   "--language",
   "0:und",
   "(",
-  "medias\\life-h264.mp4",
+  "medias/life-h264.mp4",
   ")",
 
   "--language",
   "0:und",
   "(",
-  "medias\\audio_1ch_192kbps.ac3",
+  "medias/audio_1ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -21,7 +21,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_2ch_128kbps.mp3",
+  "medias/audio_2ch_128kbps.mp3",
   ")",
 
   "--language",
@@ -29,7 +29,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_2ch_192kbps.aac",
+  "medias/audio_2ch_192kbps.aac",
   ")",
 
   "--language",
@@ -39,7 +39,7 @@
   "--forced-display-flag",
   "0:yes",
   "(",
-  "medias\\audio_2ch_192kbps.ac3",
+  "medias/audio_2ch_192kbps.ac3",
   ")",
 
   "--language",
@@ -47,7 +47,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_96kHz.thd",
+  "medias/audio_6ch_96kHz.thd",
   ")",
 
   "--language",
@@ -55,7 +55,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_192kHz.thd",
+  "medias/audio_6ch_192kHz.thd",
   ")",
 
   "--language",
@@ -63,7 +63,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_640kbps.ac3",
+  "medias/audio_6ch_640kbps.ac3",
   ")",
 
   "--language",
@@ -71,7 +71,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_1152kbps.eac3",
+  "medias/audio_6ch_1152kbps.eac3",
   ")",
 
   "--language",
@@ -79,7 +79,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_1440kbps.ogg",
+  "medias/audio_6ch_1440kbps.ogg",
   ")",
 
   "--language",
@@ -87,7 +87,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_1510kbps.dts",
+  "medias/audio_6ch_1510kbps.dts",
   ")",
 
   "--language",
@@ -95,7 +95,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_6ch_1536kbps.opus",
+  "medias/audio_6ch_1536kbps.opus",
   ")",
 
   "--language",
@@ -103,7 +103,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_8ch.flac",
+  "medias/audio_8ch.flac",
   ")",
 
   "--language",
@@ -111,7 +111,7 @@
   "--default-track-flag",
   "0:no",
   "(",
-  "medias\\audio_silence_44khz.wav",
+  "medias/audio_silence_44khz.wav",
   ")",
 
   "--title",
