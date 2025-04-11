@@ -59,7 +59,7 @@ echo "Adding directory \'$MKVTOOLNIX_APP_DIR/usr/lib\' as a shared library sourc
 echo "$MKVTOOLNIX_APP_DIR/usr/lib" | sudo tee --append /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 echo done.
 echo "Updaing system with ldconfig..."
-ldconfig
+sudo ldconfig
 echo done.
 echo
 
