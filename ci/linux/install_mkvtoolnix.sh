@@ -13,13 +13,14 @@ sudo apt update
 #echo
 
 # Installing via AppImage as per instructions on https://mkvtoolnix.download/downloads.html#appimage
-curl -o /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage https://mkvtoolnix.download/appimage/MKVToolNix_GUI-91.0-x86_64.AppImage
-chmod u+rx /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage
+export MKVTOOLNIX_DOWNLOAD_VERSION=91.0
+curl -o /tmp/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage https://mkvtoolnix.download/appimage/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage
+chmod u+rx /tmp/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage
 
 # According to documentation, creating a symlink would allow to run the executables inside the image but that does not look like that.
-#chmod u+rx /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage
-#ln -s /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage mkvpropedit
-#ln -s /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage mkvmerge
+#chmod u+rx /tmp/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage
+#ln -s /tmp/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage mkvpropedit
+#ln -s /tmp/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage mkvmerge
 #sudo apt install libegl1 libice6 libsm6
 #./mkvmerge @medias/test01.json
 #
@@ -36,7 +37,7 @@ chmod u+rx /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage
 
 # Extract the content of the image instead
 export MKVTOOLNIX_APP_DIR=/tmp/mkvtoolnix
-pushd /tmp && /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage --appimage-extract && mv /tmp/squashfs-root $MKVTOOLNIX_APP_DIR && popd
+pushd /tmp && /tmp/MKVToolNix_GUI-$MKVTOOLNIX_DOWNLOAD_VERSION-x86_64.AppImage --appimage-extract && mv /tmp/squashfs-root $MKVTOOLNIX_APP_DIR && popd
 chmod u+rx $MKVTOOLNIX_APP_DIR/usr/bin/mkvmerge
 chmod u+rx $MKVTOOLNIX_APP_DIR/usr/bin/mkvpropedit
 ln -s $MKVTOOLNIX_APP_DIR/usr/bin/mkvmerge    /usr/bin/mkvmerge
