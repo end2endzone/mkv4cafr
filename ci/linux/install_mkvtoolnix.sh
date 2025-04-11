@@ -46,7 +46,7 @@ sudo ln -s $MKVTOOLNIX_APP_DIR/usr/bin/mkvpropedit /usr/bin/mkvpropedit
 # Add $MKVTOOLNIX_APP_DIR/usr/lib as a shared libraries directory
 # https://unix.stackexchange.com/questions/425251/using-ldconfig-and-ld-so-conf-versus-ld-library-path
 #echo "$MKVTOOLNIX_APP_DIR/usr/lib">/etc/ld.so.conf.d/mkvtoolnix.conf
-sudo echo "$MKVTOOLNIX_APP_DIR/usr/lib">>/etc/ld.so.conf.d/x86_64-linux-gnu.conf
+echo "$MKVTOOLNIX_APP_DIR/usr/lib" | sudo tee --append /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 ldconfig
 
 echo mkvtoolnix was installed on the system:
