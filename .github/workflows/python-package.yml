@@ -54,6 +54,7 @@ jobs:
         echo PYTHONPATH=$PYTHONPATH
         python tools/generate_medias/generate_medias.py
     - name: Test with pytest (with code coverage)
+      id: unit_tests
       run: |
         ci/linux/codecoverage.sh
     - name: Making badges
