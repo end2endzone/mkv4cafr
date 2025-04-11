@@ -55,10 +55,10 @@ echo
 # Add $MKVTOOLNIX_APP_DIR/usr/lib as a shared libraries directory
 # https://unix.stackexchange.com/questions/425251/using-ldconfig-and-ld-so-conf-versus-ld-library-path
 #echo "$MKVTOOLNIX_APP_DIR/usr/lib">/etc/ld.so.conf.d/mkvtoolnix.conf
-echo "Adding directory \'$MKVTOOLNIX_APP_DIR/usr/lib\' as a shared library source directory..."
+echo "Adding directory '$MKVTOOLNIX_APP_DIR/usr/lib' as a shared library source directory..."
 echo "$MKVTOOLNIX_APP_DIR/usr/lib" | sudo tee --append /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 echo done.
-echo "Updaing system with ldconfig..."
+echo "Updating system with ldconfig..."
 sudo ldconfig
 echo done.
 echo
