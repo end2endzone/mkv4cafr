@@ -1,10 +1,8 @@
 [
-  "--ui-language",
-  "en",
   "--priority",
   "lower",
   "--output",
-  "medias\\test_get_track_id_from_index.mkv",
+  "medias/test_get_track_id_from_index.mkv",
 
   "--language",
   "0:und",
@@ -52,7 +50,7 @@
   "--track-name",
   "7:full",
   "(",
-  "medias\\test01.mkv",
+  "medias/test01.mkv",
   ")",
 
   "--title",

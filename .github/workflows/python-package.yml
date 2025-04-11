@@ -3,11 +3,11 @@
 
 name: Python package
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
+#  push:
+#    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
 
 jobs:
   build:
@@ -16,7 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # Not supported by the following versions: "3.9", 
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
@@ -35,6 +36,23 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install ffmpeg
+      run: |
+        ci/linux/install_ffmpeg.sh
+    - name: Install mkvtoolnix
+      run: |
+        ci/linux/install_mkvtoolnix.sh
+    - name: Set environment variables
+      run: |
+        echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+        echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
+    - name: List environment variables
+      run: |
+        env
+    - name: Generating medias
+      run: |
+        echo PYTHONPATH=$PYTHONPATH
+        python tools/generate_medias/generate_medias.py
     - name: Test with pytest
       run: |
-        pytest
+        pytest -v
