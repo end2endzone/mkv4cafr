@@ -14,6 +14,7 @@ sudo apt update
 
 # Installing via AppImage as per instructions on https://mkvtoolnix.download/downloads.html#appimage
 curl -o /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage https://mkvtoolnix.download/appimage/MKVToolNix_GUI-91.0-x86_64.AppImage
+chmod u+rx /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage
 
 # According to documentation, creating a symlink would allow to run the executables inside the image but that does not look like that.
 #chmod u+rx /tmp/MKVToolNix_GUI-91.0-x86_64.AppImage
