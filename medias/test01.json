@@ -1,6 +1,4 @@
 [
-    "--ui-language",
-    "en",
     "--priority",
     "lower",
     "--output",
