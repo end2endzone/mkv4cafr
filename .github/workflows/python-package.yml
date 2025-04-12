@@ -46,6 +46,13 @@ jobs:
       run: |
         echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
         echo "PYTHONPATH=$GITHUB_WORKSPACE:$PYTHONPATH" >> $GITHUB_ENV
+        python -c "import os; print('GIT_REPOSITORY=' + os.path.split(os.getenv('GITHUB_REPOSITORY'))[1]);" >> $GITHUB_ENV
+        python -c "import os; print('GIT_BRANCH=' + os.path.split(os.getenv('GITHUB_REF'))[1]);" >> $GITHUB_ENV
+
+        python --version>/tmp/python-version.txt
+        sed -i -e 's/Python /PYTHON_VERSION=/g' /tmp/python-version.txt  
+        sed -i -e 's/\.[0-9]\{1,3\}$//' /tmp/python-version.txt
+        cat /tmp/python-version.txt >> $GITHUB_ENV
     - name: List environment variables
       run: |
         env
@@ -68,7 +75,7 @@ jobs:
       with:
         token: ${{ secrets.BADGES }}
         gist_id: 58cf6c72c08e706335337d5ef9ca48e8
-        gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.GITHUB_WORKFLOW}}-tests.json
+        gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.PYTHON_VERSION}}-tests.json
         file_path: ./unittests.json
     - name: Deploy test badge to gist
       if: success() || steps.unit_tests.conclusion == 'failure'
@@ -77,5 +84,5 @@ jobs:
       with:
         token: ${{ secrets.BADGES }}
         gist_id: 58cf6c72c08e706335337d5ef9ca48e8
-        gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.GITHUB_WORKFLOW}}-coverage.json
+        gist_file_name: ${{env.GIT_REPOSITORY}}.${{env.GIT_BRANCH}}.${{env.PYTHON_VERSION}}-coverage.json
         file_path: ./coverage.json
