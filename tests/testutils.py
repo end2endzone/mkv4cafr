@@ -1,5 +1,6 @@
 import os
 import subprocess
+import coverage
 
 
 def get_project_root_dir_path():
@@ -41,6 +42,16 @@ def run_mkv4cafr(additional_args: list):
     # subprocess python module will finds the python executable fron PATH environment variable.
     args.append("python")
     args.append("-m")
+
+    # Enable multiprocess code coverage support.
+    # Coverage of processes spawn with subprocess will not be captured by default.
+    # The official documentation of subprocess mentions to spawn the coverage executable explicitly
+    # as the command for your subprocess instead of using "python" as the command.
+    # https://coverage.readthedocs.io/en/latest/subprocess.html#explicit-coverage
+    args.append("coverage")
+    args.append("run")
+    args.append("-m")
+    
     args.append("mkv4cafr.mkv4cafr")
 
     if (additional_args != None):
