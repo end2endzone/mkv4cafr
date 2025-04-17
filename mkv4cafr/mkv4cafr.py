@@ -6,6 +6,8 @@ import subprocess
 import json
 import copy
 import glob
+import signal
+import coverage
 
 from mkv4cafrlib import mkv4cafrlib
 from mkv4cafrlib import findutils
@@ -16,6 +18,15 @@ from mkv4cafrlib import jsonutils
 
 # Constants
 MAX_SUBTITLES_PER_HOUR_RATIO = 75.0
+
+
+# Register a signal handler to properly exit the application.
+# Required to properly compute code coverage
+# https://stackoverflow.com/questions/77135323/python-coverage-when-using-subprocess-wont-work
+def signal_handler(number, frame):
+    sys.exit(0)
+signal.signal(signal.SIGTERM, signal_handler)
+
 
 def print_header():
     print("mkv4cafr v0.2.0")
@@ -229,5 +240,15 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
 
 
 if __name__ == "__main__":
+    # Enable multiprocess code coverage support.
+    # This program is launched by unit tests. To properly compute coverage of this process,
+    # the environment variable 'COVERAGE_PROCESS_START' must be set to the path of the project's `.coveragerc` file.
+    # If set, we should start the coverage module to compute the coverage of this specific process.
+    # https://stackoverflow.com/questions/78181708/coverage-of-process-spawned-by-pytest
+    # https://coverage.readthedocs.io/en/latest/subprocess.html#implicit-coverage
+    do_start_coverage = os.environ['COVERAGE_PROCESS_START'] if 'COVERAGE_PROCESS_START' in os.environ else None
+    if (do_start_coverage != None):
+        coverage.process_startup()
+
     exit_code = main()
     sys.exit(exit_code)
