@@ -16,6 +16,7 @@ fi
 cd "$PRODUCT_SOURCE_DIR"
 
 echo "Starting coverage unit tests..."
+export COVERAGE_PROCESS_START=$PRODUCT_SOURCE_DIR/.coveragerc
 pytest -v --junitxml=unittests.xml --cov-report term --cov-report xml:coverage.xml --cov-report html:htmlcov --cov
 echo done.
 echo
