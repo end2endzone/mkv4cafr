@@ -11,7 +11,12 @@ def test_find_exec_in_path():
     location = findutils.find_exec_in_path("python")
     assert location != None
 
-    
+    # on Windows, search for python.exe
+    if os.name == 'nt' or os.name == 'win32':
+        location = findutils.find_exec_in_path("python.exe")
+        assert location != None
+
+
 def test_find_file_in_hints():
     search_paths  = os.curdir
     search_paths += os.pathsep + os.path.join(os.curdir,"medias")

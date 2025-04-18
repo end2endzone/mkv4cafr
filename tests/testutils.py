@@ -35,7 +35,10 @@ def get_test_output_dir_path():
     return dir_path
 
 
-def run_mkv4cafr(additional_args: list):
+def run_mkv4cafr(additional_args: list) -> dict:
+    # Output values
+    output = dict()
+
     # Builds args for starting mkv4cafr
     args = list()
 
@@ -48,37 +51,74 @@ def run_mkv4cafr(additional_args: list):
         args.extend(additional_args)
 
     cwd = get_project_root_dir_path()
-    output_str = None
 
     # We are specifying the exec and its arguments as a list or an array
     # We do not have to invoke the shell to parse our command.
     is_shell=False
 
+    # initialize return values
+    output['command'] = " ".join(args)
+    output['exit_code'] = 0
+    output['stdout'] = ""
+
     try:
-        output_bytes = subprocess.check_output(args, cwd=cwd, shell=is_shell, stderr=subprocess.STDOUT,)
-        output_str = output_bytes.decode("utf-8")
+        output_bytes = subprocess.check_output(args, cwd=cwd, shell=is_shell, stderr=subprocess.STDOUT)
+        output['stdout'] = output_bytes.decode("utf-8")
     except subprocess.CalledProcessError as p:
-        output_str = p.output.decode("utf-8")
-
-        err_desc = str()
-        err_desc += "Failed to execute command:\n"
-        err_desc += " ".join(args)
-        err_desc += "\n"
-        err_desc += "Return code: {0}\n".format(p.returncode)
-        err_desc += "Program output:\n"
-        err_desc += output_str
-        err_desc += "\n"
-
-        #raise Exception(err_desc)
-        print(err_desc)
-        return p.returncode
+        output['stdout'] = p.output.decode("utf-8")
+        output['exit_code'] = p.returncode
     except Exception as e:
-        err_desc = str()
-        err_desc += "Failed to execute command:\n"
-        err_desc += " ".join(args)
-        err_desc += "\n"
-        err_desc += "Exception:"
-        err_desc += str(e)
-        err_desc += "\n"
-        return 1
-    return 0
+        output['stdout'] = str(e)
+        output['exit_code'] = 1 # use this exit code but the output will be meaningful as an exception
+    return output
+
+
+def run_mkv4cafr_env(additional_args: list, env: list) -> dict:
+    # Output values
+    output = dict()
+
+    # Builds args for starting mkv4cafr
+    args = list()
+
+    # subprocess python module will finds the python executable fron PATH environment variable.
+    args.append("python")
+    args.append("-m")
+    args.append("mkv4cafr.mkv4cafr")
+
+    if (additional_args != None):
+        args.extend(additional_args)
+
+    cwd = get_project_root_dir_path()
+
+    # We are specifying the exec and its arguments as a list or an array
+    # We do not have to invoke the shell to parse our command.
+    is_shell=False
+
+    # initialize return values
+    output['command'] = " ".join(args)
+    output['exit_code'] = 0
+    output['stdout'] = ""
+
+    try:
+        output_bytes = subprocess.check_output(args, cwd=cwd, shell=is_shell, stderr=subprocess.STDOUT, env=env)
+        output['stdout'] = output_bytes.decode("utf-8")
+    except subprocess.CalledProcessError as p:
+        output['stdout'] = p.output.decode("utf-8")
+        output['exit_code'] = p.returncode
+    except Exception as e:
+        output['stdout'] = str(e)
+        output['exit_code'] = 1 # use this exit code but the output will be meaningful as an exception
+    return output
+
+
+def print_mkv4cafr_call_result(result: dict):
+    err_desc = ""
+    err_desc += "Failed to execute command:\n"
+    err_desc += result['command']
+    err_desc += "\n"
+    err_desc += "Return code: {0}\n".format(result['exit_code'])
+    err_desc += "Program output:\n"
+    err_desc += result['stdout']
+    err_desc += "\n"
+    print(err_desc)
+

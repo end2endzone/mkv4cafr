@@ -399,6 +399,15 @@ def compute_json_differences(json_left: dict, json_right: dict):
             property_value_left = properties_left[property_name] if property_name in properties_left else None
             property_value_right = properties_right[property_name] if property_name in properties_right else None
 
+            # Handle special case for track_name set to '' or None
+            if (property_name == "track_name" and 
+                (property_value_left is None or property_value_left == '') and
+                (property_value_right is None or property_value_right == '')):
+                # consider these properties as equals
+                # This check is required for properly detecting special case:
+                # 'No modification required in input file metadata.'
+                continue
+
             # Check if property is not set on both sides (left and right)
             if (property_value_left is None and 
                 property_value_right is None):

@@ -57,7 +57,7 @@ def main() -> int:
 
     parser.add_argument('-f', '--input-file', type=argparse.FileType('rb'), help='input mkv file')
     parser.add_argument('-d', '--input-dir', action='store', type=str, help='input mkv directory', default=None)
-    parser.add_argument('-o', '--output-dir', type=directory_must_exist_if_specified, default=os.path.curdir, help='output directory')
+    parser.add_argument('-o', '--output-dir', type=directory_must_exist_if_specified, help='output directory')
     parser.add_argument('-e', '--edit-in-place', action='store_true', help='Process input file in place', default=False)
 
     try:
@@ -194,7 +194,6 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
 
     # Compute difference between json_obj and json_copy
     json_diff = mkv4cafrlib.compute_json_differences(json_obj, json_copy)
-
     has_diff = bool(json_diff)
     if (not has_diff):
         print("No modification required in input file metadata.")
