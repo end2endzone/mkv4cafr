@@ -40,7 +40,7 @@ def test_is_absolute_file_in_path():
         file_name = 'cmd.exe'
         bad_dir = 'c:\\idonotexist'
     else: 
-        file_dir = '/usr/bin'
+        file_dir = '/bin'
         file_name = 'sh'
         bad_dir = '/idonotexist'
 
@@ -49,12 +49,13 @@ def test_is_absolute_file_in_path():
     found = findutils.is_absolute_file_in_path(file_path)
     assert (found == False)
 
-    # assert finding something 
+    # assert finding the literal file's absolute path in PATH  
     file_path = os.path.join(file_dir, file_name)
+    file_abs_path = findutils.find_file_in_path(file_path)
     found = findutils.is_absolute_file_in_path(file_path)
     assert (found == True)
 
-    # file_name will be found in PATH but not as the 
+    # file_name will be found in PATH but not as the given absolute path
     bad_file_path = os.path.join(bad_dir, file_name)
     found = findutils.is_absolute_file_in_path(bad_file_path)
     assert (found == False)
