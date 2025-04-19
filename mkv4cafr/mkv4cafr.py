@@ -29,7 +29,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 
 def print_header():
-    print("mkv4cafr v0.2.0")
+    print("mkv4cafr v0.3.0")
 
 
 # Parse output directory

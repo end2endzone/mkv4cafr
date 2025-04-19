@@ -194,7 +194,7 @@ def generate_testsrc2():
 
 
 def get_anullsrc_filter(channel_layout: str, sample_rate: int):
-    filter = "anullsrc=channel_layout={channel_layout}}:sample_rate={sample_rate}".format(channel_layout=channel_layout, sample_rate=sample_rate)
+    filter = "anullsrc=channel_layout={0}:sample_rate={1}".format(channel_layout, sample_rate)
     return filter
 def generate_audio_tracks():
     print_step_header(FUNC_NAME())
