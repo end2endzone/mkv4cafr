@@ -4,6 +4,8 @@ import tempfile
 from mkv4cafrlib import mkvtoolnixutils
 from mkv4cafrlib import mkvmergeutils
 from mkv4cafrlib import findutils
+from mkv4cafrlib import fileutils
+from mkv4cafrlib import envutils
 from tests import testutils
 
 
@@ -55,18 +57,21 @@ def assert_track_properties(json_obj: dict,
 
 
 def test_media_test01():
+    # arrange
     temp_dir = tempfile.gettempdir()
-
-    # act
     args = list()
     args.append("--input-file")
     args.append("medias/test01.mkv")
     args.append("--output-dir")
     args.append(temp_dir)
-    returncode = testutils.run_mkv4cafr(args)
-    assert returncode == 0
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+    if (result['exit_code'] != 0):
+        testutils.print_mkv4cafr_call_result(result)
 
     # assert
+    assert result['exit_code'] == 0
     output_file_path = os.path.join(temp_dir, "test01.mkv")
     assert os.path.isfile(output_file_path)
 
@@ -92,18 +97,21 @@ def test_media_test01():
 
 
 def test_media_test02():
+    # arrange
     temp_dir = tempfile.gettempdir()
-
-    # act
     args = list()
     args.append("--input-file")
     args.append("medias/test02.mkv")
     args.append("--output-dir")
     args.append(temp_dir)
-    returncode = testutils.run_mkv4cafr(args)
-    assert returncode == 0
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+    if (result['exit_code'] != 0):
+        testutils.print_mkv4cafr_call_result(result)
 
     # assert
+    assert result['exit_code'] == 0
     output_file_path = os.path.join(temp_dir, "test02.mkv")
     assert os.path.isfile(output_file_path)
 
@@ -129,18 +137,21 @@ def test_media_test02():
 
 
 def test_media_test_get_track_name_flags():
+    # arrange
     temp_dir = tempfile.gettempdir()
-
-    # act
     args = list()
     args.append("--input-file")
     args.append("medias/test_get_track_name_flags.mkv")
     args.append("--output-dir")
     args.append(temp_dir)
-    returncode = testutils.run_mkv4cafr(args)
-    assert returncode == 0
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+    if (result['exit_code'] != 0):
+        testutils.print_mkv4cafr_call_result(result)
 
     # assert
+    assert result['exit_code'] == 0
     output_file_path = os.path.join(temp_dir, "test_get_track_name_flags.mkv")
     assert os.path.isfile(output_file_path)
 
@@ -178,18 +189,21 @@ def test_media_test_get_track_name_flags():
 
 
 def test_media_test_get_track_auto_generated_name():
+    # arrange
     temp_dir = tempfile.gettempdir()
-
-    # act
     args = list()
     args.append("--input-file")
     args.append("medias/test_get_track_auto_generated_name.mkv")
     args.append("--output-dir")
     args.append(temp_dir)
-    returncode = testutils.run_mkv4cafr(args)
-    assert returncode == 0
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+    if (result['exit_code'] != 0):
+        testutils.print_mkv4cafr_call_result(result)
 
     # assert
+    assert result['exit_code'] == 0
     output_file_path = os.path.join(temp_dir, "test_get_track_auto_generated_name.mkv")
     assert os.path.isfile(output_file_path)
 
@@ -207,15 +221,280 @@ def test_media_test_get_track_auto_generated_name():
     assert_track_properties(json_obj,  2, 'fre', 'fr', False, False, 'FR MP3 2.0')
     assert_track_properties(json_obj,  3, 'fre', 'fr-FR', False, False, 'FR AAC 2.0 (VFF)')
     assert_track_properties(json_obj,  4, 'fre', 'fr-CA', True, True, 'FR AC3 2.0 (VFQ)')
-    assert_track_properties(json_obj,  5, 'spa', 'es', False, False, 'SPA TrueHD 5.1')
-    assert_track_properties(json_obj,  6, 'ger', 'de', False, False, 'GER TrueHD 5.1')
+    assert_track_properties(json_obj,  5, 'spa', 'es', False, False, 'SPA TRUEHD 5.1')
+    assert_track_properties(json_obj,  6, 'ger', 'de', False, False, 'GER TRUEHD 5.1')
     assert_track_properties(json_obj,  7, 'eng', 'en', False, False, 'EN AC3 5.1')
     assert_track_properties(json_obj,  8, 'eng', 'en-US', False, False, 'EN E-AC3 5.1')
-    assert_track_properties(json_obj,  9, 'eng', 'en-GB', False, False, 'EN Vorbis 5.1')
+    assert_track_properties(json_obj,  9, 'eng', 'en-GB', False, False, 'EN VORBIS 5.1')
     assert_track_properties(json_obj, 10, 'eng', 'en-CA', False, False, 'EN DTS 5.1')
-    assert_track_properties(json_obj, 11, 'mul', 'mul', False, False, 'MUL Opus 5.1')
+    assert_track_properties(json_obj, 11, 'mul', 'mul', False, False, 'MUL OPUS 5.1')
     assert_track_properties(json_obj, 12, 'mis', 'mis', False, False, 'MIS FLAC 7.1')
     assert_track_properties(json_obj, 13, 'zxx', 'zxx', False, False, 'ZXX PCM 2.0')
 
 
+def test_output_directory_not_exits():
+    # arrange
+    args = list()
+    args.append("--input-file")
+    args.append("medias/test01.mkv")
+    args.append("--output-dir")
+    args.append('i-do-not-exitst')
 
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] != 0
+
+
+def test_no_output_directory_specified():
+    # arrange
+    temp_dir = tempfile.gettempdir()
+    args = list()
+    args.append("--input-file")
+    args.append("medias/test01.mkv")
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] != 0
+
+
+def test_no_input_directory_or_input_file_specified():
+    # arrange
+    temp_dir = tempfile.gettempdir()
+    args = list()
+    args.append("--output-dir")
+    args.append(temp_dir)
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] != 0
+
+
+def test_input_directory_and_input_file_specified():
+    # arrange
+    temp_dir = tempfile.gettempdir()
+    args = list()
+    args.append("--input-file")
+    args.append("medias/test01.mkv")
+    args.append("--input-dir")
+    args.append("medias")
+    args.append("--output-dir")
+    args.append(temp_dir)
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] != 0
+
+
+def test_mkvtoolnix_not_in_path():
+    # arrange
+    temp_dir = tempfile.gettempdir()
+
+    # search path for the location of python
+    mkvmerge_exec_path = findutils.find_exec_in_path('mkvmerge')
+    assert mkvmerge_exec_path != None
+    mkvmerge_exec_dir = os.path.dirname(mkvmerge_exec_path)
+    assert mkvmerge_exec_dir != None
+
+    # override the environment PATH variable and 
+    # remove the directory that contains mkvtoolnix application
+    envutils.remove_directory_in_path(mkvmerge_exec_dir)
+    new_env: os._Environ
+    new_env = os.environ.copy()
+
+    args = list()
+    args.append("--input-file")
+    args.append("medias/test01.mkv")
+    args.append("--output-dir")
+    args.append(temp_dir)
+
+    # act
+    result = testutils.run_mkv4cafr_env(args, new_env)
+
+    # assert
+    assert result['exit_code'] == 0
+
+
+def test_input_directory():
+    # arrange
+    temp_dir = tempfile.gettempdir()
+    args = list()
+    args.append("--input-dir")
+    args.append("medias")
+    args.append("--output-dir")
+    args.append(temp_dir)
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] == 0
+
+
+def test_input_file_processing_fail():
+    # arrange
+
+    # create a fake temp directory
+    temp_dir = tempfile.gettempdir()
+    temp_input_dir = os.path.join(temp_dir, "mkv4cafr.test_input_file_processing_fail")
+    try:
+        os.mkdir(temp_input_dir)
+    except FileExistsError as e:
+        pass
+    except PermissionError as e:
+        raise e
+    except Exception as e:
+        raise e
+
+    # create a fake mkv file
+    temp_file_path = os.path.join(temp_input_dir, "file.mkv")
+    file_size_in_bytes = 1024000
+    with open(temp_file_path, 'wb') as fout:
+        fout.write(os.urandom(file_size_in_bytes))
+
+    args = list()
+    args.append("--input-file")
+    args.append(temp_file_path)
+    args.append("--output-dir")
+    args.append(temp_dir)
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] != 0
+
+
+def test_input_dir_processing_fail():
+    # arrange
+
+    # create a fake temp directory
+    temp_dir = tempfile.gettempdir()
+    temp_input_dir = os.path.join(temp_dir, "mkv4cafr.test_input_dir_processing_fail")
+    try:
+        os.mkdir(temp_input_dir)
+    except FileExistsError as e:
+        pass
+    except PermissionError as e:
+        raise e
+    except Exception as e:
+        raise e
+
+    # create a fake mkv file
+    temp_file_path = os.path.join(temp_input_dir, "file.mkv")
+    file_size_in_bytes = 1024000
+    with open(temp_file_path, 'wb') as fout:
+        fout.write(os.urandom(file_size_in_bytes))
+
+    args = list()
+    args.append("--input-dir")
+    args.append(temp_input_dir)
+    args.append("--output-dir")
+    args.append(temp_dir)
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] != 0
+
+
+def test_input_file_edit_in_place_success():
+    # arrange
+
+    # create a fake temp directory
+    temp_dir = tempfile.gettempdir()
+    temp_input_dir = os.path.join(temp_dir, "mkv4cafr.test_input_file_edit_in_place_success")
+    try:
+        os.mkdir(temp_input_dir)
+    except FileExistsError as e:
+        pass
+    except PermissionError as e:
+        raise e
+    except Exception as e:
+        raise e
+
+    # create a value mkv file in directory
+    temp_file_path = os.path.join(temp_input_dir, "file.mkv")
+    fileutils.copy_file("medias/test01.mkv", temp_file_path)
+
+    args = list()
+    args.append("--input-file")
+    args.append(temp_file_path)
+    args.append("--edit-in-place")
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] == 0
+
+
+def test_input_file_no_modification_required_success():
+    # arrange
+
+    # create a fake temp directory
+    temp_dir = tempfile.gettempdir()
+    temp_input_dir = os.path.join(temp_dir, "mkv4cafr.test_input_file_no_modification_required_success")
+    try:
+        os.mkdir(temp_input_dir)
+    except FileExistsError as e:
+        pass
+    except PermissionError as e:
+        raise e
+    except Exception as e:
+        raise e
+
+    # create a value mkv file in directory
+    temp_file_path = os.path.join(temp_input_dir, "file.mkv")
+    fileutils.copy_file("medias/test01.mkv", temp_file_path)
+
+    args = list()
+    args.append("--input-file")
+    args.append(temp_file_path)
+    args.append("--edit-in-place")
+
+    # run a first time
+    result = testutils.run_mkv4cafr(args)
+    assert result['exit_code'] == 0
+
+    # act (run again)
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] == 0
+
+
+def test_input_dir_no_modification_required_success():
+    # arrange
+
+    # create a fake temp directory
+    temp_dir = tempfile.gettempdir()
+    temp_input_dir = os.path.join(temp_dir, "mkv4cafr.test_input_dir_no_modification_required_success")
+    try:
+        os.mkdir(temp_input_dir)
+    except FileExistsError as e:
+        pass
+    except PermissionError as e:
+        raise e
+    except Exception as e:
+        raise e
+
+    args = list()
+    args.append("--input-dir")
+    args.append(temp_input_dir)
+    args.append("--edit-in-place")
+
+    # act
+    result = testutils.run_mkv4cafr(args)
+
+    # assert
+    assert result['exit_code'] == 0
+    

@@ -1,13 +1,9 @@
 import pytest
-import sys
 import os
-import subprocess
+from tests import testutils
 from mkv4cafrlib import mkvmergeutils
 from mkv4cafrlib import mkvtoolnixutils
 from mkv4cafrlib import findutils
-from tests import testutils
-from random import shuffle
-from functools import cmp_to_key
 
 
 # Globals
@@ -16,6 +12,7 @@ medias_path = None
 testfiles_path = None
 test01_file_path = None
 test02_file_path = None
+test03_file_path = None
 
 
 # https://stackoverflow.com/questions/72085517/getting-pytest-to-run-setup-and-teardown-for-every-test-coming-from-nose
@@ -38,8 +35,10 @@ def setup_function():
     # Assert some know medias files
     test01_file_path_tmp = os.path.join(medias_path_tmp, "test01.mkv")
     test02_file_path_tmp = os.path.join(medias_path_tmp, "test02.mkv")
+    test03_file_path_tmp = os.path.join(medias_path_tmp, "test03.mkv")
     assert os.path.isfile(test01_file_path_tmp)
     assert os.path.isfile(test02_file_path_tmp)
+    assert os.path.isfile(test03_file_path_tmp)
 
     # Setup global variables
     global mkvmerge_path
@@ -47,11 +46,13 @@ def setup_function():
     global testfiles_path
     global test01_file_path
     global test02_file_path
+    global test03_file_path
     mkvmerge_path   = mkvmerge_path_tmp
     medias_path     = medias_path_tmp
     testfiles_path  = testfiles_path_tmp
     test01_file_path = test01_file_path_tmp
     test02_file_path = test02_file_path_tmp
+    test03_file_path = test03_file_path_tmp
 
 
 def teardown_function():
@@ -106,7 +107,7 @@ def test_get_tracks_indice_by_type():
     assert "tracks" in json_obj
     tracks = json_obj['tracks']
 
-    # act
+    # act (list version)
     accepted_types = list()
     accepted_types.append("video")
     accepted_types.append("subtitles")
@@ -119,6 +120,17 @@ def test_get_tracks_indice_by_type():
     assert indices[0] == 0
     assert indices[1] == 6
     assert indices[2] == 7
+
+    # act (string version)
+    accepted_type = "subtitles"
+    
+    indices = list()
+    indices = mkvmergeutils.get_tracks_indice_by_type(tracks, accepted_type)
+
+    # assert
+    assert len(indices) == 2
+    assert indices[0] == 6
+    assert indices[1] == 7
 
 
 def test_filter_tracks_indice_by_language():
@@ -315,13 +327,13 @@ def test_get_track_auto_generated_name():
         'FR MP3 2.0',
         'FR AAC 2.0 (VFF)',
         'FR AC3 2.0 (VFQ)',
-        'SPA TrueHD 5.1',
-        'GER TrueHD 5.1',
+        'SPA TRUEHD 5.1',
+        'GER TRUEHD 5.1',
         'EN AC3 5.1',
         'EN E-AC3 5.1',
-        'EN Vorbis 5.1',
+        'EN VORBIS 5.1',
         'EN DTS 5.1',
-        'MUL Opus 5.1',
+        'MUL OPUS 5.1',
         'MIS FLAC 7.1',
         'ZXX PCM 2.0'
     ]
@@ -803,6 +815,39 @@ def test_set_track_flag():
     assert name5 == 'this is a ac3 canadian french track (VFF)'
     assert name6 == 'this might be foreign languages subtitles (VFI)'
 
+    # assert setting a flag on a track that has no name
+    # arrange
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'track_name', None)
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'language', 'und')
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'language_ietf', 'und')
+    # act
+    result2 = mkvmergeutils.set_track_flag(json_obj, 2, 'VFQ')
+    # assert
+    assert result2
+    name2 = mkvmergeutils.get_track_property_value(json_obj, 2, 'track_name')
+    assert name2 == '(VFQ)'
+
+    # assert setting a flag on a track that has existing flags
+    # arrange
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'track_name', 'AC3 5.1 (ZZZ,YYY)')
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'language', 'und')
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'language_ietf', 'und')
+    # act
+    result2 = mkvmergeutils.set_track_flag(json_obj, 2, 'VFQ')
+    # assert
+    assert result2
+    name2 = mkvmergeutils.get_track_property_value(json_obj, 2, 'track_name')
+    assert name2 == 'AC3 5.1 (ZZZ,YYY,VFQ)'
+
+    # assert an exception is thrown when setting a flag that is opposing the existing language
+    # arrange
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'track_name', 'AC3 5.1 (VFF)')
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'language', 'eng')
+    mkvmergeutils.set_track_property_value(json_obj, 2, 'language_ietf', 'en-US')
+    # act,assert
+    with pytest.raises(Exception) as e_info:
+        result2 = mkvmergeutils.set_track_flag(json_obj, 2, 'VFQ')
+
 
 def test_get_container_duration_ms():
     # Check setup dependencies
@@ -823,3 +868,82 @@ def test_get_container_duration_ms():
 
     # assert
     assert abs(expected_length_ms - actual_length_ms) < 50
+
+
+def test_load_media_file_info_invalid():
+    # act
+    result = mkvmergeutils.load_media_file_info("i-do-not-exists.json")
+
+    # assert
+    assert result is None
+
+
+def test_get_media_file_info_invalid():
+    # assert an exception is thrown
+    with pytest.raises(Exception) as e_info:
+        result = mkvmergeutils.get_media_file_info("i-do-not-exists.mkv")
+
+
+def test_get_codec_friendly_name():
+    assert mkvmergeutils.get_codec_friendly_name("MPEG-4p2") == "MPEG4" # *.avi
+    assert mkvmergeutils.get_codec_friendly_name("MPEG-1/2") == "MPEG2" # *.mpg or *.mpeg
+    assert mkvmergeutils.get_codec_friendly_name("AVC") == "H264" # H.264 files
+    assert mkvmergeutils.get_codec_friendly_name("H.264") == "H264"
+    assert mkvmergeutils.get_codec_friendly_name("H.265") == "HEVC" # H.265 files
+
+    # subtitles
+    assert mkvmergeutils.get_codec_friendly_name("SubRip") == "SRT"
+    assert mkvmergeutils.get_codec_friendly_name("SubStationAlpha") == "ASS"
+    assert mkvmergeutils.get_codec_friendly_name("HDMV PGS") == "PGS"
+
+
+def test_get_first_video_track_codec_friendly_name():
+    # Check setup dependencies
+    assert mkvmerge_path != None
+    assert test01_file_path != None
+
+    # -------------------------------------------
+    #               test01.mkv
+    # -------------------------------------------
+
+    # arrange
+
+    json_obj = mkvmergeutils.get_media_file_info(test01_file_path)
+    assert json_obj != None
+    assert "tracks" in json_obj
+    tracks = json_obj['tracks']
+
+    # act
+    codec = mkvmergeutils.get_first_video_track_codec_friendly_name(tracks)
+
+    # assert
+    assert codec == "H264"
+
+    # -------------------------------------------
+    #               test03.mkv
+    # -------------------------------------------
+
+    # arrange
+
+    json_obj = mkvmergeutils.get_media_file_info(test03_file_path)
+    assert json_obj != None
+    assert "tracks" in json_obj
+    tracks = json_obj['tracks']
+
+    # act
+    codec = mkvmergeutils.get_first_video_track_codec_friendly_name(tracks)
+
+    # assert
+    assert codec == "HEVC"
+
+
+def test_get_track_name_flags_from_filename():
+    assert mkvmergeutils.get_track_name_flags_from_filename('Star Wars: Episode IV A New Hope (1977) - VF2') == 'VF2'
+    assert mkvmergeutils.get_track_name_flags_from_filename('Star Wars: Episode V The Empire Strikes Back (1980) VFF.H264') == 'VFF'
+    assert mkvmergeutils.get_track_name_flags_from_filename('Star Wars: Episode VI Return of the Jedi (1983) French VFQ') == 'VFQ'
+    assert mkvmergeutils.get_track_name_flags_from_filename('Star Wars: Episode I The Phantom Menace (1999) - VFI') == 'VFI'
+    assert mkvmergeutils.get_track_name_flags_from_filename('Star Wars: Episode II Attack of the Clones (2002) - VO') == 'VO'
+
+    # assert VF2 has priority over VFQ and VFF.
+    flags = mkvmergeutils.get_track_name_flags_from_filename('Star Wars: Episode III Revenge of the Sith (2005)  - VF2,VFF,VFQ,VFI,VO')
+    assert flags == "VF2"

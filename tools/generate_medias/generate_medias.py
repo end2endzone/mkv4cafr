@@ -236,6 +236,7 @@ def generate_mkv_files():
         commands = list()
         commands.append("mkvmerge @medias/test01.json")
         commands.append("mkvmerge @medias/test02.json")
+        commands.append("mkvmerge @medias/test03.json")
         commands.append("mkvmerge @medias/test_get_track_name_flags.json")
         commands.append("mkvmerge @medias/test_get_track_auto_generated_name.json")
         commands.append("mkvmerge @medias/test_get_track_id_from_index.json")

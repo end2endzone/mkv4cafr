@@ -10,6 +10,13 @@ def LINE():
     return sys._getframe(1).f_lineno
 
 
+def get_file_separator():
+    if os.name == 'nt' or os.name == 'win32':
+        return "\\"
+    else:
+        return "/"
+
+
 def get_copy_file_to_directory_target(input_path: str, output_dir: str):
     input_dir, input_file_name = os.path.split(input_path)
     output_file_path_relative = os.path.join(output_dir, input_file_name)

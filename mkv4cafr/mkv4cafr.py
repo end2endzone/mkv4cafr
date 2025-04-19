@@ -6,6 +6,8 @@ import subprocess
 import json
 import copy
 import glob
+import signal
+import coverage
 
 from mkv4cafrlib import mkv4cafrlib
 from mkv4cafrlib import findutils
@@ -16,6 +18,15 @@ from mkv4cafrlib import jsonutils
 
 # Constants
 MAX_SUBTITLES_PER_HOUR_RATIO = 75.0
+
+
+# Register a signal handler to properly exit the application.
+# Required to properly compute code coverage
+# https://stackoverflow.com/questions/77135323/python-coverage-when-using-subprocess-wont-work
+def signal_handler(number, frame):
+    sys.exit(0)
+signal.signal(signal.SIGTERM, signal_handler)
+
 
 def print_header():
     print("mkv4cafr v0.2.0")
@@ -46,7 +57,7 @@ def main() -> int:
 
     parser.add_argument('-f', '--input-file', type=argparse.FileType('rb'), help='input mkv file')
     parser.add_argument('-d', '--input-dir', action='store', type=str, help='input mkv directory', default=None)
-    parser.add_argument('-o', '--output-dir', type=directory_must_exist_if_specified, default=os.path.curdir, help='output directory')
+    parser.add_argument('-o', '--output-dir', type=directory_must_exist_if_specified, help='output directory')
     parser.add_argument('-e', '--edit-in-place', action='store_true', help='Process input file in place', default=False)
 
     try:
@@ -183,7 +194,6 @@ def process_file(input_file_path: str, output_dir_path: str, edit_in_place: bool
 
     # Compute difference between json_obj and json_copy
     json_diff = mkv4cafrlib.compute_json_differences(json_obj, json_copy)
-
     has_diff = bool(json_diff)
     if (not has_diff):
         print("No modification required in input file metadata.")

@@ -6,7 +6,7 @@ INVALID_TRACK_ID = -1
 INVALID_TRACK_INDEX = -1
 
 
-def get_media_file_info(file_path: str):
+def get_media_file_info(file_path: str) -> dict:
     media_json_bytes = None
     try:
         media_json_bytes = subprocess.check_output(["mkvmerge", "-J", file_path])                       
@@ -115,30 +115,42 @@ def get_language_friendly_name(name_tmp: str):
 
 
 def get_codec_friendly_name(name: str):
+    name = name.upper()
+
     # audio
+    #   MP3 is MP3
+    #   FLAC is FLAC
+    #   DTS is DTS
+    #   PCM is PCM
+    #   Opus is OPUS
+    #   AAC is AAC
+    #   Vorbis is VORBIS
+    #   TrueHD is TRUEHD
     if name == "E-AC-3":
       return "E-AC3"
-    elif name == "AC-3":
+    elif name == "AC-3" or "AC-3" in name: # 'AC-3 Dolby Surround EX'
       return "AC3"
-    elif name == "AAC":
-      return "AAC"
 
     # video
+    #   VP8 is VP8
+    #   VP9 is VP9
+    #   AV1 is AV1
+    elif name == "MPEG-4P2":
+      return "MPEG4"
     elif name == "MPEG-1/2":
       return "MPEG2"
-    elif name == "AVC/H.264/MPEG-4p10":
-      return "H.264"
-    elif name == "HEVC/H.265/MPEG-H":
+    elif name == "AVC/H.264/MPEG-4P10" or "AVC" in name or "H.264" in name or "MPEG-4p10" in name:
+      return "H264"
+    elif name == "HEVC/H.265/MPEG-H" or "HEVC" in name or "H.265" in name or "MPEG-H" in name:
       return "HEVC"
-    elif name == "AV1":
-      return "AV1"
 
     # subtitles
-    elif name == "VobSub":
-      return "VobSub"
-    elif name == "SubRip/SRT":
+    #   VOBSUB is VOBSUB
+    elif name == "SUBRIP/SRT" or "SUBRIP" in name or "SRT" in name:
       return "SRT"
-    elif name == "HDMV PGS":
+    elif name == "SUBSTATIONALPHA":
+      return "ASS"
+    elif name == "HDMV PGS" or "PGS" in name:
       return "PGS"
 
     return name
@@ -164,12 +176,10 @@ def get_audio_channel_layout_friendly_name(num_channels: int):
 
 
 def get_first_video_track_codec_friendly_name(tracks: list):
-    try:
-        video_tracks_indice = get_tracks_indice_by_type(tracks, 'video')
-        for track_index in video_tracks_indice:
-            codec = tracks[track_index]['codedc']
-            return get_codec_friendly_name(codec)
-    except Exception as e: pass
+    video_tracks_indice = get_tracks_indice_by_type(tracks, 'video')
+    for track_index in video_tracks_indice:
+        codec = tracks[track_index]['codec']
+        return get_codec_friendly_name(codec)
     return None
 
 
@@ -489,7 +499,7 @@ def get_container_property(json_obj: dict, property_name: str):
     return value
 
 
-def get_track_property_value(json_obj: dict, track_index: int, property_name: str):
+def get_track_property_value(json_obj: dict, track_index: int, property_name: str) -> str:
     if not "tracks" in json_obj:
         return None
     tracks = json_obj['tracks']
@@ -508,6 +518,22 @@ def get_track_property_value(json_obj: dict, track_index: int, property_name: st
     if not property_name in properties:
         return None
     value = properties[property_name]
+
+    return value
+
+
+def get_track_key_value(json_obj: dict, track_index: int, property_name: str) -> str:
+    if not "tracks" in json_obj:
+        return None
+    tracks = json_obj['tracks']
+
+    # Validate track_index
+    if (track_index < 0 or track_index >= len(tracks)):
+        return None
+    track = tracks[track_index]
+
+    # Validate specific key name
+    value = track[property_name] if property_name in track else None
 
     return value
 
@@ -552,7 +578,7 @@ def set_track_flag(json_obj: dict, track_index: int, flag_value: str):
     if existing_flags == None or existing_flags.find(flag_value) == -1:
         # This flag is not already set in the track name
         # It might already be set through language properties, but the flag value is missing in the track name
-        new_track_name = str(get_track_property_value(json_obj, track_index, "track_name"))
+        new_track_name = get_track_property_value(json_obj, track_index, "track_name")
         if (new_track_name is None):
             new_track_name = "(" + flag_value + ")"
         else:

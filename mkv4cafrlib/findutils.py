@@ -43,5 +43,7 @@ def is_absolute_file_in_path(exec_path: str):
     path, file = os.path.split(exec_path)
     file_abs_path = find_file_in_path(file)
     if (file_abs_path is None):
+        return False
+    if (file_abs_path == exec_path):
         return True
     return False

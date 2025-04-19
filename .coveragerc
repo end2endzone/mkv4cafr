@@ -1,0 +1,26 @@
+[run]
+
+# According to the official documentation of subprocess module, all coverage settings must be specified in this file:
+#   Subprocesses will only see coverage options in the configuration file. Options set on the command line will not be visible to subprocesses.
+# https://coverage.readthedocs.io/en/latest/subprocess.html
+
+# Compute coverage of all branches. Computing only function entry points
+# is less precise to identify uncovered part of the source code.
+branch = True
+
+# To capture coverage from subprocess calls to main application file `mkv4cafr.py` CLI.
+# Coverage must be stored in multiple databases (one per process).
+# This will create data file such as `.coverage.[COMPUTERNAME].[PROCESSID].[RANDOMSTRING]`.
+# https://stackoverflow.com/questions/77135323/python-coverage-when-using-subprocess-wont-work
+parallel = True
+sigterm = True
+
+source =
+    mkv4cafr
+    mkv4cafrlib
+omit =
+    **/tests/**
+    **/config.py
+# ffmpegutils is only used when generating media files. It is never used by the application.
+# Disabling warnings about no coverage for ffmpegutils.
+    **/mkv4cafrlib/ffmpegutils.py
