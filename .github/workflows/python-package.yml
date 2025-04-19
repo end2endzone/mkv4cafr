@@ -69,7 +69,7 @@ jobs:
     - name: Generating medias
       run: |
         echo PYTHONPATH=$PYTHONPATH
-        python tools/generate_medias/generate_medias.py
+        ci/linux/generate_medias.sh
     - name: Test with pytest (with code coverage)
       id: unit_tests
       run: |
