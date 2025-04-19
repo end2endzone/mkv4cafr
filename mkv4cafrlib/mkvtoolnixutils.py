@@ -6,7 +6,7 @@ from functools import cmp_to_key
 TRACK_TYPE_NATURAL_SORT_ORDER = ["video", "audio", "subtitles"]
 
 
-def compare_tracks(a: str, b: str):
+def compare_tracks(a: dict, b: dict):
     a_index = TRACK_TYPE_NATURAL_SORT_ORDER.index(a['type']) if 'type' in a else 999999
     b_index = TRACK_TYPE_NATURAL_SORT_ORDER.index(b['type']) if 'type' in b else 999999
     if a_index > b_index:
