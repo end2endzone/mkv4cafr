@@ -56,16 +56,10 @@ jobs:
     - name: List environment variables
       run: |
         env
-    - name: List important file locations
-      run: |
-        find /usr /bin -name sh
-        echo
-        find /usr /bin -name bash
-        echo
-        find /usr /bin -name chmod
-        echo
-        find /usr /bin -name curl
-        echo
+    #- name: List important file locations
+    #  run: |
+    #    find /usr /bin -name sh -o -name bash -o -name chmod -o -name curl
+    #    echo
     - name: Generating medias
       run: |
         echo PYTHONPATH=$PYTHONPATH
